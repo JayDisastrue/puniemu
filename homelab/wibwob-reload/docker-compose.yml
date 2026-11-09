@@ -38,7 +38,8 @@ services:
       - ./WWR_BACKUP/dataDownload:/app/WWR_BACKUP/dataDownload:ro
       - ./CUSTOM_YOKAI:/app/CUSTOM_YOKAI:ro
     ports:
-      - "80:80"
+      # Set BIND_ADDRESS to the machine's Tailscale IP to keep the server off the public internet.
+      - "${BIND_ADDRESS:-0.0.0.0}:80:80"
     # Accounts are saved every 60 s and on a normal stop/restart; give the save time to finish.
     stop_grace_period: 30s
     restart: unless-stopped
