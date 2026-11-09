@@ -12,8 +12,8 @@ Source package: https://github.com/TheC0mmand/WibWobPadaBoom/tree/1.1
 
 1. Extract `WibWobPadaBoom_1.1.zip` on the homelab.
 2. Copy everything in this folder (`Dockerfile`, `.dockerignore`,
-   `docker-compose.yml`, `schema.sql`, `.env.example`) into the extracted
-   `WibWobPadaBoom/` folder.
+   `docker-compose.yml`, `schema.sql`, `.env.example`, `admin/`) into the
+   extracted `WibWobPadaBoom/` folder.
 3. `mkdir -p CUSTOM_YOKAI` (the compose file mounts it; empty is fine).
 4. `cp .env.example .env` and set a database password.
 5. `docker compose up -d --build`
@@ -28,7 +28,25 @@ those strangers would show up in friend search and rankings.
 Accounts are saved every 60 seconds and on any normal `docker compose stop`,
 `restart`, `down` or host reboot.
 
-Edit accounts:
+## Admin commands (in game)
+
+Set `ADMIN_PIN` in `.env` (any number only you know) and rebuild. Then in the
+game open Settings → the serial code box and type the PIN, a space, and a
+command. Commands without your PIN are handled normally.
+
+| Type | Does |
+|---|---|
+| `<PIN> help` | lists the commands |
+| `<PIN> 1 <amount>` | sets Y-Money |
+| `<PIN> 2 <amount>` | sets spirits |
+| `<PIN> 3 <itemId> [count]` | gives an item |
+| `<PIN> 4 <youkaiId>` | gives a Yo-kai |
+
+Restart the game afterwards to see the change. Item and Yo-kai IDs:
+`python3 homelab/tools/list_ids.py WWR_BACKUP/Resources ids.md`.
+
+Edit the database directly only while the server is stopped: it keeps active
+accounts in memory and saves them every 60 seconds, overwriting outside edits.
 ```
 docker compose exec db psql -U wibwob wibwob
 ```

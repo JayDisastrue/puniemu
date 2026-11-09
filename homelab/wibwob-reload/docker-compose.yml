@@ -30,6 +30,8 @@ services:
       # PublicServerURL is left unset so the server uses whatever address the phone connected to.
       DataDownloadURL: "0"
       UseHttpsRedirection: "false"
+      # In-game admin commands: type "<PIN> help" in Settings > serial code. Empty = disabled.
+      ADMIN_PIN: ${ADMIN_PIN:-}
       MaxConnections: "100"
       MaxCachedAccounts: "200"
       EmailForAuthMessages: ${EMAIL_FOR_AUTH:-}

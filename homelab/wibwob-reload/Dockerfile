@@ -12,6 +12,11 @@ COPY WWR_BACKUP/Resources WWR_BACKUP/Resources
 RUN F=Src/Server/GameServer/Requests/Init/Init/Logic/InitHandler.cs \
  && grep -q '(string)appVer != DataManager.Logic.DataManager.GameVersion' $F \
  && sed -i 's#(string)appVer != DataManager.Logic.DataManager.GameVersion#!(DataManager.Logic.DataManager.GameVersion ?? "").Split(",").Select(v => v.Trim()).Contains((string)appVer)#' $F
+# In-game admin commands via the Settings serial-code box (active when ADMIN_PIN is set)
+COPY admin/AdminCommands.cs Src/Homelab/AdminCommands.cs
+RUN F=Src/Server/GameServer/Requests/SerialConfirm/Logic/SerialConfirmHandler.cs \
+ && grep -q 'var deserialized = JsonConvert.DeserializeObject<SerialConfirmRequest>(requestJsonString!);' $F \
+ && sed -i '/var deserialized = JsonConvert.DeserializeObject<SerialConfirmRequest>(requestJsonString!);/a\            if (await Puniemu.Src.Homelab.AdminCommands.TryHandleAsync(ctx, deserialized)) return;' $F
 RUN dotnet publish Puniemu.csproj -c Release -o /app --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
