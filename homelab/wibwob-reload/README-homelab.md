@@ -55,34 +55,44 @@ maps and Mimikin Heights stay open. `ROOM_ROTATION=off` opens every room.
 
 ## Yo-kai from Japanese Puni Puni
 
-`homelab/tools/jp_import.py` pulls Yo-kai from the live Japanese game (no login
-needed) into your server. Their art works in the Wibble Wobble client as-is;
-only the text needs English. Run it on the server, in the folder that holds
-`WWR_BACKUP` (needs `sudo apt install -y python3-cryptography`):
+`homelab/tools/jp_import.py` ports Yo-kai from the live Japanese game (no login
+needed) into your server: about 2,450 that Wibble Wobble never had. Their art
+loads in the Wibble Wobble client as-is. What gets adapted:
+
+- **Ranks** above SS (SSS, Z, ZZ, ZZZ, UZ, UZ+) show as SS, since the client
+  has no art or rules for them. Their stats are rescaled into the top of the SS
+  range, keeping their order: a Japanese UZ+ ends up about 15% above the
+  strongest Wibble Wobble SS.
+- **Soultimates:** about 660 come over unchanged. The rest use mechanics the
+  2017 client has no code for, so they borrow the mechanics, effect and English
+  description of the closest Soultimate the client does know (matched on what
+  the move does, same tribe preferred). Their own name is kept.
+
+Run it on the server, in the folder that holds `WWR_BACKUP`. It needs
+`sudo apt install -y python3-cryptography`, about 2 GB of disk, and Claude Code
+signed in for the translation step (uses your Claude plan, no API key):
 
 ```
 python3 jp_import.py fetch --jp jpdata
-python3 jp_import.py list --jp jpdata --resources WWR_BACKUP/Resources
+python3 jp_import.py translate --jp jpdata --resources WWR_BACKUP/Resources \
+    --translations translations.json --all
 python3 jp_import.py import --jp jpdata --resources WWR_BACKUP/Resources \
-    --data WWR_BACKUP/dataDownload --translations starter_translations.json \
-    --ids 2707000 2236900 9000301 9000302 2939000 2116000 2714000 2683000 2649000 2112000 --apply
+    --data WWR_BACKUP/dataDownload --translations translations.json --all \
+    --gacha 500055 --apply
 docker compose up -d --build wibwob
 ```
 
-`starter_translations.json` covers those ten (Hovernyan Ace, Hovernyan S,
-Kyubi Shadow/Light, Wobblehover, Benkei, Daikoku, Mecha Kyubi, Ashura,
-General Genma). Give them to yourself with `<PIN> 4 <id>`.
-
-For more, either write English into a template
-(`jp_import.py template --jp jpdata --translations mine.json --ids ...`) or let
-Claude translate (`pip install anthropic`, set `ANTHROPIC_API_KEY`, then
-`jp_import.py translate ... --ids ...`; defaults to Claude Haiku 5.5, about a
-cent per few Yo-kai).
-
-Limits: `list` shows only Yo-kai whose Soultimate type the old client knows
-(about 680 of 2,467); newer types are refused because they will likely break.
-Ranks above SS are imported as SS. Imported Yo-kai are not in any
-Crank-a-kai; use the admin command.
+- `translate` makes about 250 Claude Code calls. If it stops at a usage limit,
+  run the same command again later; it continues where it left off.
+- `import` without `--apply` is a dry run that shows what it would do.
+- `--gacha 500055` adds them to the 4,500 Y-Money Crank-a-kai, by rank
+  (`jp_import.py gachas --resources WWR_BACKUP/Resources` lists the machines).
+  Leave it out to make them admin-only (`<PIN> 4 <id>`).
+- `--limit 200` or `--native-only` import a smaller set. Phones download the new
+  files on their next start, so a full import means a big (~1.6 GB) download.
+- `starter_translations.json` covers ten hand-translated Yo-kai if you want to
+  try a few first with `--ids 2707000 2236900 9000301 9000302 2939000 2116000
+  2714000 2683000 2649000 2112000` instead of `--all`.
 
 Edit the database directly only while the server is stopped: it keeps active
 accounts in memory and saves them every 60 seconds, overwriting outside edits.
