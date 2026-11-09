@@ -79,6 +79,20 @@ def patch_info_plist(data):
     return plistlib.dumps(plist, fmt=plistlib.FMT_BINARY if binary else plistlib.FMT_XML)
 
 
+def fix_ipa_permissions(info, data):
+    """IPAs zipped on Windows carry no Unix permissions (mode 000), which iOS
+    sideloaders reject as "no permission". Give every entry normal modes and
+    make Mach-O binaries executable."""
+    info.create_system = 3  # Unix
+    if info.is_dir():
+        mode = 0o40755
+    elif data[:4] in (b"\xcf\xfa\xed\xfe", b"\xce\xfa\xed\xfe", b"\xca\xfe\xba\xbe"):
+        mode = 0o100755
+    else:
+        mode = 0o100644
+    info.external_attr = (mode << 16) | (0x10 if info.is_dir() else 0)
+
+
 def is_target(name):
     return (
         name.endswith("libSGF.so")
@@ -126,6 +140,8 @@ def main():
             if n:
                 print(f"  {info.filename}: {n} address(es) patched")
             total += n
+            if not apk:
+                fix_ipa_permissions(info, data)
             zout.writestr(info, data, compress_type=info.compress_type)
 
     if total == 0:
