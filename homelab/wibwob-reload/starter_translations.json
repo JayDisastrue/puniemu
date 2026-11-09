@@ -1,0 +1,202 @@
+{
+  "2707000": {
+    "name": "Hovernyan Ace",
+    "description": "Me, the \"Ace\"? All right,\nwhich Ace do you want?\nThe gutsy Ace of Spades?\nThe gritty Ace of Diamonds?\nIt's gotta be Hearts, right!?",
+    "befriend1": "That power of yours...\nmagnificent!▽\nBecome my rival...!!",
+    "befriend2": "Thank you...!▽\nI swear I'll lend you\nmy strength...!!",
+    "befriend3": "That power of yours...\nmagnificent!▽\nBecome my rival...!!",
+    "befriend4": "That power of yours...\nmagnificent!▽\nBecome my rival...!!",
+    "catchphrase": "Now that's something...!",
+    "skill_name": "Royal Ace Rush",
+    "skill_description": "Elegant sword thrusts pop Wib Wobs",
+    "skill_levels": [
+      "Pop: 12～13 Power: 59pt",
+      "Pop: 14～15 Power: 69pt",
+      "Pop: 15～17 Power: 79pt",
+      "Pop: 17～18 Power: 87pt",
+      "Pop: 19～20 Power: 91pt",
+      "Pop: 20～22 Power: 95pt",
+      "Pop: 22～23 Power: 100pt"
+    ]
+  },
+  "2236900": {
+    "name": "Hovernyan S",
+    "description": "Friendship, grit and effort!\nAfter brutal training,\nHovernyan finally hit S rank.\nHis guts and fire are a bit\nmuch, but his power is real.",
+    "befriend1": "I saw it...\nyour guts...!!▽\nWe could make a fine\nfriendship, you and me...!",
+    "befriend2": "You got me out\nof the Crank-a-kai...!!▽\nTake all this\noverflowing guts!!",
+    "befriend3": "GUUUUUUUUUTS!!!▽\nSorry...\nI got a bit fired up...!",
+    "befriend4": "GUUUUUUUUUTS!!!▽\nSorry...\nI got a bit fired up...!",
+    "catchphrase": "The best...!!",
+    "skill_name": "Grit Straight Paw",
+    "skill_description": "A straight punch pops central Wib Wobs",
+    "skill_levels": [
+      "Power: 36pt",
+      "Power: 47pt",
+      "Power: 58pt",
+      "Power: 69pt",
+      "Power: 79pt",
+      "Power: 89pt",
+      "Power: 100pt"
+    ]
+  },
+  "9000301": {
+    "name": "Kyubi (Shadow)",
+    "description": "A legendary Yo-kai whose\nnine tails hold vast power.\nGraceful yet savage, it is\nfeared and revered, above all\nby fox Yo-kai.",
+    "befriend1": "Grrrrr...\nWill you be my kin\nand fight at my side?",
+    "befriend2": "Grrrrr...\nWill you be my kin\nand fight at my side?",
+    "befriend3": "Grrrrr...\nWill you be my kin\nand fight at my side?",
+    "befriend4": "Grrrrr...\nWill you be my kin\nand fight at my side?",
+    "catchphrase": "0",
+    "skill_name": "Ninefold Inferno",
+    "skill_description": "Hits 1 enemy (stronger under 30% HP)",
+    "skill_levels": [
+      "Power: 24pt",
+      "Power: 43pt",
+      "Power: 62pt",
+      "Power: 81pt",
+      "Power: 100pt",
+      "Power: 119pt",
+      "Power: 138pt"
+    ]
+  },
+  "9000302": {
+    "name": "Kyubi (Light)",
+    "description": "A legendary Yo-kai with\nnine tails, as the name says.\nLong years among humans\nhave given it a calm,\ncomposed air that suits it.",
+    "befriend1": "Hm, you have good eyes.\nI shall lend you my power.",
+    "befriend2": "Hm, you have good eyes.\nI shall lend you my power.",
+    "befriend3": "Hm, you have good eyes.\nI shall lend you my power.",
+    "befriend4": "Hm, you have good eyes.\nI shall lend you my power.",
+    "catchphrase": "0",
+    "skill_name": "Crimson Flame Dance",
+    "skill_description": "Pops Wib Wobs, heals more if it pops itself",
+    "skill_levels": [
+      "Power: 39pt Heal: 57pt",
+      "Power: 50pt Heal: 63pt",
+      "Power: 61pt Heal: 70pt",
+      "Power: 71pt Heal: 78pt",
+      "Power: 81pt Heal: 86pt",
+      "Power: 90pt Heal: 93pt",
+      "Power: 100pt Heal: 100pt"
+    ]
+  },
+  "2939000": {
+    "name": "Wobblehover",
+    "description": "A kitty Yo-kai who inspirits\nthe phones of tired adults\non their commute. The joy of\npoking and popping Wib Wobs\nrecharges their spirits.",
+    "befriend1": "Nice to meet ya~.\nBeen popping lately?",
+    "befriend2": "Nice to meet ya~.\nBeen popping lately?",
+    "befriend3": "Nice to meet ya~.\nBeen popping lately?",
+    "befriend4": "Nice to meet ya~.\nBeen popping lately?",
+    "catchphrase": "0",
+    "skill_name": "Wobble Combo Time!",
+    "skill_description": "Throws a giant Wib Wob to make Big Wobs",
+    "skill_levels": [
+      "Big Wob size: 5～7",
+      "Big Wob size: 6～8",
+      "Big Wob size: 7～8",
+      "Big Wob size: 7～9",
+      "Big Wob size: 8～10",
+      "Big Wob size: 9～10",
+      "Big Wob size: 9～11"
+    ]
+  },
+  "2116000": {
+    "name": "Benkei",
+    "description": "He hides 999 swords taken\nfrom foes he defeated\ninside his belly.\nWhen the time comes, they\nfly out and skewer enemies.",
+    "befriend1": "I can't believe I lost...\nThen there's only one way.▽\nWe must become\nfriends!",
+    "befriend2": "Twice in one life I meet\nmy destiny...▽\nI shall follow you\nwherever you go...!!",
+    "befriend3": "So you're my new master!\nOur fates are now one!",
+    "befriend4": "So you're my new master!\nOur fates are now one!",
+    "catchphrase": "Tasty! So tasty!",
+    "skill_name": "999 Swords",
+    "skill_description": "Unleashes his hidden swords to slash Wib Wobs",
+    "skill_levels": [
+      "Pop: 9～10 Power: 61pt",
+      "Pop: 10～12 Power: 74pt",
+      "Pop: 12～13 Power: 84pt",
+      "Pop: 14～15 Power: 88pt",
+      "Pop: 15～17 Power: 94pt",
+      "Pop: 17～18 Power: 99pt",
+      "Pop: 19～20 Power: 100pt"
+    ]
+  },
+  "2714000": {
+    "name": "Daikoku",
+    "description": "A Lucky God Yo-kai of good\nharvests and fortune. Land\nthat gets a tap from his\nlittle mallet comes alive,\npromising a bumper crop.",
+    "befriend1": "Mooo~ you're way too strong~.▽\nHow'd you get\nlike that~?",
+    "befriend2": "Aren't you hungry?▽\nMooo~\nI'll whip up anything~.",
+    "befriend3": "You picked me~.\nMooo~ I'm so happy~.",
+    "befriend4": "You picked me~.\nMooo~ I'm so happy~.",
+    "catchphrase": "Mooo~ the best~",
+    "skill_name": "Lucky Big Hammer",
+    "skill_description": "Big damage to 1 enemy (huge if lucky)",
+    "skill_levels": [
+      "Power: ~23pt",
+      "Power: ~42pt",
+      "Power: ~61pt",
+      "Power: ~79pt",
+      "Power: ~98pt",
+      "Power: ~117pt",
+      "Power: ~136pt"
+    ]
+  },
+  "2683000": {
+    "name": "Mecha Kyubi",
+    "description": "Probing Kyubi's power was\nforbidden, until science\nfrom the future broke it.\nIts nine tails are shaped\nfrom dangerous energy.",
+    "befriend1": "I DO NOT KNOW\nWHAT I LACK...▽\nWILL YOU\nTEACH ME...?",
+    "befriend2": "I AM MECHA KYUBI...▽\nCOOLER THAN\nTHE ORIGINAL...",
+    "befriend3": "YOU HAVE\nGOOD TASTE.▽\nI WILL PROTECT YOU,\nCOOLLY.",
+    "befriend4": "YOU HAVE\nGOOD TASTE.▽\nI WILL PROTECT YOU,\nCOOLLY.",
+    "catchphrase": "NOT BAD",
+    "skill_name": "Nine-Tail Laser Blade",
+    "skill_description": "Hits 1 enemy (stronger under 50% HP)",
+    "skill_levels": [
+      "Power: 17pt",
+      "Power: 31pt",
+      "Power: 45pt",
+      "Power: 59pt",
+      "Power: 72pt",
+      "Power: 86pt",
+      "Power: 100pt"
+    ]
+  },
+  "2649000": {
+    "name": "Ashura",
+    "description": "A lone god of war who\nfights an endless battle\nwith a rage that never\ncools. Wherever his six\narms go, hellfire follows.",
+    "befriend1": "I don't mind strong guys.▽\nWith you around I could\nget even stronger.",
+    "befriend2": "I have to\nkeep fighting.▽\nWill you come along?",
+    "befriend3": "What, you want\nto fight me?▽\nCome on... I'll take you on.",
+    "befriend4": "What, you want\nto fight me?▽\nCome on... I'll take you on.",
+    "catchphrase": "Well done...",
+    "skill_name": "Ashura Frenzy",
+    "skill_description": "Four arms pop Wib Wobs in several areas",
+    "skill_levels": [
+      "Power: 39pt",
+      "Power: 51pt",
+      "Power: 63pt",
+      "Power: 74pt",
+      "Power: 85pt",
+      "Power: 96pt",
+      "Power: 107pt"
+    ]
+  },
+  "2112000": {
+    "name": "General Genma",
+    "description": "A warlord's spirit, revived\nwhen his long-lost helmet\nand armor came together.\nHe still seeks to unite\nthe land, as he once failed.",
+    "befriend1": "Not bad, you.\nBe my retainer...▽\nNo! Be my\nfriend instead!?",
+    "befriend2": "What, you're not here\nto be my retainer...?▽\nWell, fine!\nLet's be off!",
+    "befriend3": "So you're my new retainer!\nCarry on!",
+    "befriend4": "So you're my new retainer!\nCarry on!",
+    "catchphrase": "Yes, this is the one!",
+    "skill_name": "Genma Slash",
+    "skill_description": "Draws his sword to make bonus orbs",
+    "skill_levels": [
+      "Orbs: 3 Gauge: 18",
+      "Orbs: 4 Gauge: 18",
+      "Orbs: 4 Gauge: 17",
+      "Orbs: 4 Gauge: 16",
+      "Orbs: 4 Gauge: 15",
+      "Orbs: 4 Gauge: 14",
+      "Orbs: 4 Gauge: 13"
+    ]
+  }
+}

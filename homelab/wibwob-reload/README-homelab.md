@@ -53,6 +53,37 @@ The Yo-kai rooms (The Last Nyanmurai Room, Platinos Room, and so on) rotate:
 maps and Mimikin Heights stay open. `ROOM_ROTATION=off` opens every room.
 `ROOM_ROTATION_MAPS=5001,5004,...` sets your own order.
 
+## Yo-kai from Japanese Puni Puni
+
+`homelab/tools/jp_import.py` pulls Yo-kai from the live Japanese game (no login
+needed) into your server. Their art works in the Wibble Wobble client as-is;
+only the text needs English. Run it on the server, in the folder that holds
+`WWR_BACKUP` (needs `sudo apt install -y python3-cryptography`):
+
+```
+python3 jp_import.py fetch --jp jpdata
+python3 jp_import.py list --jp jpdata --resources WWR_BACKUP/Resources
+python3 jp_import.py import --jp jpdata --resources WWR_BACKUP/Resources \
+    --data WWR_BACKUP/dataDownload --translations starter_translations.json \
+    --ids 2707000 2236900 9000301 9000302 2939000 2116000 2714000 2683000 2649000 2112000 --apply
+docker compose up -d --build wibwob
+```
+
+`starter_translations.json` covers those ten (Hovernyan Ace, Hovernyan S,
+Kyubi Shadow/Light, Wobblehover, Benkei, Daikoku, Mecha Kyubi, Ashura,
+General Genma). Give them to yourself with `<PIN> 4 <id>`.
+
+For more, either write English into a template
+(`jp_import.py template --jp jpdata --translations mine.json --ids ...`) or let
+Claude translate (`pip install anthropic`, set `ANTHROPIC_API_KEY`, then
+`jp_import.py translate ... --ids ...`; defaults to Claude Haiku 5.5, about a
+cent per few Yo-kai).
+
+Limits: `list` shows only Yo-kai whose Soultimate type the old client knows
+(about 680 of 2,467); newer types are refused because they will likely break.
+Ranks above SS are imported as SS. Imported Yo-kai are not in any
+Crank-a-kai; use the admin command.
+
 Edit the database directly only while the server is stopped: it keeps active
 accounts in memory and saves them every 60 seconds, overwriting outside edits.
 ```
