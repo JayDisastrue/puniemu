@@ -1,0 +1,8 @@
+# DNS-01 challenge: gets a real Let's Encrypt cert even though the domain
+# resolves to a private Tailscale IP that Let's Encrypt can't reach.
+{$PUNI_DOMAIN} {
+	tls {
+		dns cloudflare {env.CF_API_TOKEN}
+	}
+	reverse_proxy server:8080
+}

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Rewrite;
+using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.FileProviders;
 using Puniemu.Src.Server.GameServer.Requests.DefaultHandler.Logic;
 using Puniemu.Src.Server.GameServer.Requests.GetL5IDStatus.Logic;
 using Puniemu.Src.Server.GameServer.Requests.CreateUser.Logic;
@@ -129,6 +131,27 @@ class Program
                 Console.WriteLine(ex);
             }
         });
+
+        //Serve the data download (game assets + help.html) at /dataDownload/ so DataDownloadURL can point at this server
+        var dataDownloadDir = Path.Combine(app.Environment.ContentRootPath, "dataDownload");
+        if (Directory.Exists(dataDownloadDir))
+        {
+            var contentTypes = new FileExtensionContentTypeProvider();
+            foreach (var ext in new[] { ".ez", ".ayd", ".dat", ".ojk", ".pfa", ".strings", ".ejs", ".pmd", ".fontsize" })
+                contentTypes.Mappings[ext] = "application/octet-stream";
+            contentTypes.Mappings[".m4"] = "audio/mp4";
+            contentTypes.Mappings[".plist"] = "text/xml";
+            contentTypes.Mappings[".og"] = "audio/ogg";
+
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(dataDownloadDir),
+                RequestPath = "/dataDownload",
+                ContentTypeProvider = contentTypes,
+                ServeUnknownFileTypes = true,
+                DefaultContentType = "application/octet-stream"
+            });
+        }
 
         app.UseHttpsRedirection();
         app.Use(async (ctx, next) =>
