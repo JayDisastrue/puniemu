@@ -45,6 +45,14 @@ command. Commands without your PIN are handled normally.
 Restart the game afterwards to see the change. Item and Yo-kai IDs:
 `python3 homelab/tools/list_ids.py WWR_BACKUP/Resources ids.md`.
 
+## Weekly Yo-kai rooms
+
+The Yo-kai rooms (The Last Nyanmurai Room, Platinos Room, and so on) rotate:
+`ROOMS_PER_WEEK` of them (default 2) are open each week, switching Monday
+00:00 in `ROTATION_TIMEZONE`. The server log shows which with `[rooms]`. Story
+maps and Mimikin Heights stay open. `ROOM_ROTATION=off` opens every room.
+`ROOM_ROTATION_MAPS=5001,5004,...` sets your own order.
+
 Edit the database directly only while the server is stopped: it keeps active
 accounts in memory and saves them every 60 seconds, overwriting outside edits.
 ```

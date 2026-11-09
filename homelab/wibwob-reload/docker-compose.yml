@@ -32,6 +32,10 @@ services:
       UseHttpsRedirection: "false"
       # In-game admin commands: type "<PIN> help" in Settings > serial code. Empty = disabled.
       ADMIN_PIN: ${ADMIN_PIN:-}
+      # Weekly Yo-kai room rotation: 2 rooms open per week, switching Monday 00:00
+      ROOMS_PER_WEEK: ${ROOMS_PER_WEEK:-2}
+      ROTATION_TIMEZONE: ${ROTATION_TIMEZONE:-UTC}
+      ROOM_ROTATION: ${ROOM_ROTATION:-on}
       MaxConnections: "100"
       MaxCachedAccounts: "200"
       EmailForAuthMessages: ${EMAIL_FOR_AUTH:-}
