@@ -1,0 +1,6 @@
+# Only send what the build needs (the folder is ~1.7 GB otherwise)
+*
+!Puniemu.csproj
+!Src
+!Properties
+!WWR_BACKUP/Resources

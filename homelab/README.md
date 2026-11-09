@@ -1,5 +1,9 @@
 # Private Wibble Wobble server on a homelab
 
+> **Recommended:** if you have the WibWob Reload package (complete game data,
+> plain HTTP, no domain needed), use [`wibwob-reload/README-homelab.md`](wibwob-reload/README-homelab.md)
+> instead. This page covers this repo's server with your own data and HTTPS.
+
 Runs Puniemu, Postgres and Caddy with Docker Compose. The server is only reachable
 over your Tailscale network, but still has a valid HTTPS certificate, which the
 patched APK requires.

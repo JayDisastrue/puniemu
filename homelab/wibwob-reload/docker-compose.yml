@@ -1,0 +1,46 @@
+# Private WibWob Reload server. See README-homelab.md.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: wibwob
+      POSTGRES_USER: wibwob
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wibwob -d wibwob"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+  server:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PostgresConnectionString: Host=db;Database=wibwob;Username=wibwob;Password=${POSTGRES_PASSWORD}
+      IsWibWob: "true"
+      GameVersion: "4.0.6"
+      ServerName: ${SERVER_NAME:-WibWob Homelab}
+      # "0" = serve game files from WWR_BACKUP/dataDownload at /eal on this server.
+      # PublicServerURL is left unset so the server uses whatever address the phone connected to.
+      DataDownloadURL: "0"
+      UseHttpsRedirection: "false"
+      MaxConnections: "100"
+      MaxCachedAccounts: "200"
+      EmailForAuthMessages: ${EMAIL_FOR_AUTH:-}
+      AppPasswordForAuthMessages: ${EMAIL_APP_PASSWORD:-}
+    volumes:
+      - ./WWR_BACKUP/dataDownload:/app/WWR_BACKUP/dataDownload:ro
+      - ./CUSTOM_YOKAI:/app/CUSTOM_YOKAI:ro
+    ports:
+      - "80:80"
+    # Accounts are saved every 60 s and on a normal stop/restart; give the save time to finish.
+    stop_grace_period: 30s
+    restart: unless-stopped
+
+volumes:
+  pgdata:
