@@ -12,8 +12,8 @@ https://gist.github.com/Amumis/75fa45025b42079816f04699cef352d0
 - A Linux box with Docker and Docker Compose, joined to your tailnet.
 - The `Resources/` and `dataDownload/` folders. These are not in the repo and
   are not distributed here; get them from the Puniemu community.
-- A domain on Cloudflare DNS, with a name of **33 characters or fewer**
-  (e.g. `puni.example.xyz`). The APK patch overwrites the server address in place,
+- A domain on Cloudflare DNS, with a name of **16 characters or fewer**
+  (e.g. `wib.example.xyz`). The client patch overwrites the server address in place,
   so it cannot be longer than that.
 - A Cloudflare API token with `Zone:DNS:Edit` for that zone (for the certificate).
 
@@ -43,20 +43,28 @@ docker compose exec db psql -U puni puniemu
 ```
 The server log (`docker compose logs server`) prints the `gdkey` of each account.
 
-## APK
+## Game client (Android and iOS)
 
-Follow section 3 of the gist above, using your domain instead of the ngrok one:
+The builds from https://wibblewobble.de/en/ (currently Spanish only) work as a
+base for both platforms: the IPA is already decrypted. They point at that
+site's server; `homelab/tools/patch_client.py` repoints them at yours.
 
-1. Open the Wibble Wobble APK in Apk Editor Studio, "Open Contents".
-2. In `lib/armeabi-v7a/libSGF.so` (and again in `lib/x86/libSGF.so`), use a hex
-   editor to find the first `https://` and overwrite the hostname after it
-   (`s-ywp-us-gameserver.hangame.co.jp`, or `wibwob.ddns.net////...` in Reloaded)
-   with your domain. Overwrite only; do not insert or delete bytes. Pad any
-   leftover characters the same way the original does.
-3. In `res/xml/hsp_launching_zone.xml`, set every `address` to `https://<your domain>/hsp`.
-4. Export, then sign:
-   `java -jar uber-apk-signer-1.3.0.jar -a your.apk --allowResign`
-5. Install with "Install with Options" (Full Application, Grant All Permissions,
-   Bypass Low Target SDK Block).
+Your domain must be **16 characters or fewer** (e.g. `wib.example.xyz`), so it
+fits every place the address is stored without changing file sizes.
+
+1. Check a file (optional; shows encryption status and server addresses):
+   `python3 homelab/tools/inspect_client.py WibbleWobble.ipa`
+2. Patch:
+   `python3 homelab/tools/patch_client.py WibbleWobble.apk wib.example.xyz`
+   `python3 homelab/tools/patch_client.py WibbleWobble.ipa wib.example.xyz`
+3. Android: sign, then install with "Install with Options" (Full Application,
+   Bypass Low Target SDK Block):
+   `java -jar uber-apk-signer-1.3.0.jar -a WibbleWobble-patched.apk --allowResign`
+4. iOS: sideload `WibbleWobble-patched.ipa` with Sideloadly or AltStore. With a
+   free Apple ID it must be re-signed every 7 days (AltStore can do this
+   automatically).
 
 The phone must be connected to Tailscale while playing.
+
+For the original NHN APK or the "Reloaded" build, the script also recognises
+their addresses; see the gist above for the manual hex-editor method.

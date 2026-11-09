@@ -426,3 +426,7 @@ Tools/sharedLogic/__pycache__
 
 # Homelab secrets
 .env
+
+# Game clients (never commit)
+*.apk
+*.ipa

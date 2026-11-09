@@ -3,6 +3,7 @@ bin/
 obj/
 .vs/
 dataDownload/
+homelab/tools/__pycache__/
 homelab/
 Tools/
 *.md
