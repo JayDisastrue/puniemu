@@ -31,7 +31,8 @@ namespace Puniemu.Src.Homelab
             "1 <amount>: set Y-Money\n" +
             "2 <amount>: set spirits\n" +
             "3 <itemId> [count]: give item\n" +
-            "4 <youkaiId>: give Yo-kai";
+            "4 <youkaiId>: give Yo-kai\n" +
+            "No spaces? PIN+command+value";
 
         /// <summary>Returns true if the code was an admin command (a response has been written).</summary>
         public static async Task<bool> TryHandleAsync(HttpContext ctx, SerialConfirmRequest? req)
@@ -41,6 +42,13 @@ namespace Puniemu.Src.Homelab
             if (string.IsNullOrEmpty(pin) || string.IsNullOrEmpty(code)) return false;
 
             var parts = Regex.Split(code, "[^0-9A-Za-z]+").Where(p => p.Length > 0).ToArray();
+            if (parts.Length == 1)
+            {
+                // Digits only (number-pad keyboards): never take a pending 6-digit account-link code
+                if (int.TryParse(code, out var numeric) && Server.CustomAuth.AuthManager.CodeCache.ContainsKey(numeric))
+                    return false;
+                parts = DigitsOnly(code, pin);
+            }
             if (parts.Length < 2 || parts[0] != pin) return false;
 
             ctx.Response.ContentType = "application/json";
@@ -70,6 +78,20 @@ namespace Puniemu.Src.Homelab
                 await Reply(ctx, "Command failed:\n" + ex.Message);
             }
             return true;
+        }
+
+        /// <summary>
+        /// "PIN" + command digit + value, e.g. 482119999999 (Y-Money 9999999), 4821325008099 (item 25008 x99:
+        /// item IDs are 5 digits, the rest is the count), 482142152000 (Yo-kai), 48210 (help).
+        /// </summary>
+        private static string[] DigitsOnly(string code, string pin)
+        {
+            if (!code.All(char.IsDigit) || !code.StartsWith(pin) || code.Length <= pin.Length) return Array.Empty<string>();
+            var cmd = code.Substring(pin.Length, 1);
+            var rest = code.Substring(pin.Length + 1);
+            if (cmd == "3" && rest.Length > 5)
+                return new[] { pin, cmd, rest.Substring(0, 5), rest.Substring(5) };
+            return rest.Length > 0 ? new[] { pin, cmd, rest } : new[] { pin, cmd };
         }
 
         private static async Task<string> SetUserData(string gdkey, string[] parts, Action<YwpUserData, int> set, string label)
