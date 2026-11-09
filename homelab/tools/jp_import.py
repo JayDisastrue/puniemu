@@ -438,7 +438,8 @@ def cmd_translate(a):
     out = load_translations(a.translations)
     needs = {i: needed_text(cat, i) for i in ids}
     todo = [i for i in ids if not is_translated(out.get(i), needs[i])]
-    print(f"{len(ids) - len(todo)} already translated, {len(todo)} to go ({a.engine})")
+    print(f"{len(ids) - len(todo)} already translated, {len(todo)} to go ({a.engine}). "
+          f"Each batch takes about a minute.", flush=True)
     engine = engine_claude_code if a.engine == "claude-code" else engine_api
     system = INSTRUCTIONS + "\n\nGlossary:\n" + glossary(cat)
     failed = []
@@ -446,6 +447,10 @@ def cmd_translate(a):
         batch = todo[start:start + a.batch]
         payload = {i: needs[i] for i in batch}
         user = "Translate each Yo-kai's fields. Return one item per id.\n\n" + json.dumps(payload, ensure_ascii=False)
+        n_batch = start // a.batch + 1
+        print(f"  batch {n_batch}/{-(-len(todo) // a.batch)}: asking {a.engine} to translate {len(batch)} Yo-kai...",
+              flush=True)
+        began = time.time()
         try:
             items = engine(system, user, a.model)["items"]
         except UsageLimit as e:
@@ -464,7 +469,7 @@ def cmd_translate(a):
                 it["_source"] = {"befriend": need["befriend"], "skill_levels": need["skill_levels"]}
                 out[i] = it
         save_json(a.translations, out)
-        print(f"  {min(start + a.batch, len(todo))}/{len(todo)}")
+        print(f"    done in {time.time() - began:.0f}s, {min(start + a.batch, len(todo))}/{len(todo)} translated", flush=True)
     if failed:
         print(f"{len(failed)} Yo-kai failed; run again to retry them.")
     print(f"Saved {a.translations}")
