@@ -45,7 +45,7 @@ namespace Puniemu.Src.UserDataManager.Logic
             {
                 _dataSource = NpgsqlDataSource.Create(DataManager.Logic.DataManager.PostgresConnectionString!);
 
-                _flushTimer = new PeriodicTimer(TimeSpan.FromSeconds(60));
+                _flushTimer = new PeriodicTimer(TimeSpan.FromSeconds(DataManager.Logic.DataManager.SaveIntervalSeconds));
                 _flushTask = FlushLoopAsync(_cts.Token);
                 Console.WriteLine("db service started");
             }
@@ -80,7 +80,6 @@ namespace Puniemu.Src.UserDataManager.Logic
             await Parallel.ForEachAsync(_accountCache.Keys, async (gdkey, _) =>
             {
                 await FlushAccount(gdkey);
-                Console.WriteLine($"Saved account. gdkey:" + gdkey);
             });
         }
 
@@ -99,6 +98,7 @@ namespace Puniemu.Src.UserDataManager.Logic
                     try
                     {
                         await UpdateAccountNoLockAsync(account);
+                        Console.WriteLine($"Saved account. gdkey:" + gdkey);
                     }
                     catch (Exception ex)
                     {

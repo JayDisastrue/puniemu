@@ -28,11 +28,13 @@ services:
       DataDownloadURL: https://${PUNI_DOMAIN:?set in .env}/dataDownload/
       MaxConnections: "100"
       MaxCachedAccounts: "200"
+      # Changed accounts are saved to Postgres this often (seconds).
+      SaveIntervalSeconds: ${SAVE_INTERVAL_SECONDS:-10}
       EmailForAuthMessages: ${EMAIL_FOR_AUTH:-}
       AppPasswordForAuthMessages: ${EMAIL_APP_PASSWORD:-}
     volumes:
       - ./dataDownload:/app/dataDownload:ro
-    # Accounts are cached in memory and flushed to Postgres on shutdown; give it time.
+    # Unsaved changes are also written on a normal stop/restart; give it time.
     stop_grace_period: 30s
     restart: unless-stopped
 

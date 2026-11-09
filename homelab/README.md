@@ -33,8 +33,9 @@ https://gist.github.com/Amumis/75fa45025b42079816f04699cef352d0
 
 The database schema is applied automatically on first start.
 
-Stop with `docker compose stop`, not `kill`: accounts live in memory and are
-written to Postgres on shutdown.
+Progress is saved automatically every `SAVE_INTERVAL_SECONDS` (10 by default),
+and on any normal `docker compose stop`, `restart`, `down` or host reboot. Only a
+crash, power cut or `docker kill` can lose the last few seconds.
 
 Edit accounts (Y-Money, spirits, items) with:
 ```

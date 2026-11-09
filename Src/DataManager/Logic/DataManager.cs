@@ -18,6 +18,9 @@ namespace Puniemu.Src.DataManager.Logic
         // Account cache ceiling. New players are refused while the cache is at capacity.
         public static int MaxCachedAccounts { get; private set; }
 
+        // How often changed accounts are written to Postgres, in seconds
+        public static int SaveIntervalSeconds { get; private set; }
+
         // If false, the data download will be downloaded from a different server rather than the Supabase storage. Supabase storage method isnt implemented yet
         public static bool IsDataDownloadFromSupabase { get; private set; }
 
@@ -43,6 +46,7 @@ namespace Puniemu.Src.DataManager.Logic
             PostgresConnectionString = config["PostgresConnectionString"];
             MaxConnections = int.TryParse(config["MaxConnections"], out var maxConnections) ? maxConnections : 1500;
             MaxCachedAccounts = int.TryParse(config["MaxCachedAccounts"], out var maxCachedAccounts) ? maxCachedAccounts : 2000;
+            SaveIntervalSeconds = int.TryParse(config["SaveIntervalSeconds"], out var saveInterval) && saveInterval > 0 ? saveInterval : 60;
             GameVersion = config["GameVersion"];
             ServerName = config["ServerName"];
             EmailForAuthMessages = config["EmailForAuthMessages"];
