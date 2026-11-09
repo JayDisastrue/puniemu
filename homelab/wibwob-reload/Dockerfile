@@ -7,6 +7,11 @@ RUN dotnet restore Puniemu.csproj
 COPY Src Src
 COPY Properties Properties
 COPY WWR_BACKUP/Resources WWR_BACKUP/Resources
+# Accept a comma-separated GameVersion list so 4.0.6 (Reload APK), 4.0.7 (iOS)
+# and 4.0.8 (wibblewobble.de APK) clients can all log in.
+RUN F=Src/Server/GameServer/Requests/Init/Init/Logic/InitHandler.cs \
+ && grep -q '(string)appVer != DataManager.Logic.DataManager.GameVersion' $F \
+ && sed -i 's#(string)appVer != DataManager.Logic.DataManager.GameVersion#!(DataManager.Logic.DataManager.GameVersion ?? "").Split(",").Select(v => v.Trim()).Contains((string)appVer)#' $F
 RUN dotnet publish Puniemu.csproj -c Release -o /app --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0

@@ -23,7 +23,8 @@ services:
     environment:
       PostgresConnectionString: Host=db;Database=wibwob;Username=wibwob;Password=${POSTGRES_PASSWORD}
       IsWibWob: "true"
-      GameVersion: "4.0.6"
+      # Client versions allowed to log in (Reload APK 4.0.6, wibblewobble.de IPA 4.0.7 / APK 4.0.8)
+      GameVersion: "4.0.6,4.0.7,4.0.8"
       ServerName: ${SERVER_NAME:-WibWob Homelab}
       # "0" = serve game files from WWR_BACKUP/dataDownload at /eal on this server.
       # PublicServerURL is left unset so the server uses whatever address the phone connected to.

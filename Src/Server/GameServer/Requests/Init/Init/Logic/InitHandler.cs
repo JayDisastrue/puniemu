@@ -49,7 +49,7 @@ namespace Puniemu.Src.Server.GameServer.Requests.Init.Logic
             if (dict.ContainsKey("appVer"))
             {
                 var appVer = dict["appVer"];
-                if ((string)appVer != DataManager.Logic.DataManager.GameVersion)
+                if (!(DataManager.Logic.DataManager.GameVersion ?? "").Split(",").Select(v => v.Trim()).Contains((string)appVer))
                 {
                     //Display "Wrong version" message box in the client
                     var msg = new MsgBoxResponse("Game version is not\ncompatible with the server.", DataManager.Logic.DataManager.ServerName!);
