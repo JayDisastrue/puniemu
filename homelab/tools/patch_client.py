@@ -17,11 +17,12 @@ import zipfile
 
 # Addresses known to be baked into clients. Add more if a build uses another.
 KNOWN_HOSTS = [
-    b"31.70.145.158:85",                     # wibblewobble.de builds
-    b"s-ywp-us-gameserver.hangame.co.jp",    # original NHN build
-    b"wibwob.ddns.net",                      # "Reloaded" build
+    rb"31\.70\.145\.158(?::\d+)?",               # wibblewobble.de builds (ports 80/81/85 seen)
+    rb"s-ywp-us-gameserver\.hangame\.co\.jp",    # original NHN build
+    rb"wibwob\.ddns\.net",                       # "Reloaded" build
 ]
-SLOT = re.compile(rb"(?:" + b"|".join(re.escape(h) for h in KNOWN_HOSTS) + rb")/*")
+HOST = re.compile(b"|".join(KNOWN_HOSTS))
+SLOT = re.compile(rb"(?:" + HOST.pattern + rb")/*")
 MAX_DOMAIN = 16
 
 
@@ -44,11 +45,7 @@ def patch_slots(data, domain):
 
 def patch_json(data, domain):
     """Plain-text JSON can change length, so swap the host cleanly."""
-    count = 0
-    for h in KNOWN_HOSTS:
-        count += data.count(h)
-        data = data.replace(h, domain)
-    return data, count
+    return HOST.subn(domain, data)
 
 
 def is_target(name):

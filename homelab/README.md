@@ -45,7 +45,7 @@ The server log (`docker compose logs server`) prints the `gdkey` of each account
 
 ## Game client (Android and iOS)
 
-The builds from https://wibblewobble.de/en/ (currently Spanish only) work as a
+The builds from https://wibblewobble.de/en/ (English, German and Spanish) work as a
 base for both platforms: the IPA is already decrypted. They point at that
 site's server; `homelab/tools/patch_client.py` repoints them at yours.
 
