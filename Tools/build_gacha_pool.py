@@ -21,7 +21,7 @@ Profiles (chance per pull):
   classic  A fan-site estimate for the original crank: B 55, A 30, S 10, items 5.
 
 Pity: after --pity-pulls pulls on a crank without a Yo-kai of --pity-rank or
-better, the next pull is guaranteed one. Default 50 pulls, rank UZ. 0 turns it off.
+better, the next pull is guaranteed one. Default 50 pulls, rank SS. 0 turns it off.
 
 A --config file is JSON in the same shape as a profile, e.g.
   {"ranks": {"9": 61.1, "13": 1.2},
@@ -69,7 +69,7 @@ def main():
     ap.add_argument("--resources", default="Resources")
     ap.add_argument("--profile", choices=sorted(PROFILES), default="all")
     ap.add_argument("--pity-pulls", type=int, default=50, help="pulls before a guaranteed high rank; 0 = no pity")
-    ap.add_argument("--pity-rank", type=int, default=12, help="lowest rank the pity pull gives (12 = UZ)")
+    ap.add_argument("--pity-rank", type=int, default=7, help="lowest rank the pity pull gives (7 = SS)")
     ap.add_argument("--config", help="JSON file with ranks and item tiers; overrides --profile")
     ap.add_argument("--replace", action="store_true", help="rebuild pools that already exist too")
     ap.add_argument("--dry-run", action="store_true", help="print the summary, write nothing")

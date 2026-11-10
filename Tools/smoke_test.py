@@ -78,7 +78,7 @@ def tally_pulls(c, args, gacha_id):
         print(f"FAIL  pull tally: admin top-up answered HTTP {e.code}")
         c.failed.append("pull tally")
         return
-    counts, total, order, first_high = {}, 0, [], None
+    counts, total, order, streak, worst = {}, 0, [], 0, 0
     while total < args.pulls:
         try:
             res = c.post("executeGacha.nhn", gachaId=gacha_id, gachaCnt=1, activeDeckId=1, requestYoukaiId=0,
@@ -100,12 +100,15 @@ def tally_pulls(c, args, gacha_id):
             counts[label] = counts.get(label, 0) + 1
             if label not in order:
                 order.append(label)
-            if not is_item and (p.get("rarityType") or 0) >= 12 and first_high is None:
-                first_high = total
+            if is_item or (p.get("rarityType") or 0) < args.pity_rank:
+                streak += 1
+                worst = max(worst, streak)
+            else:
+                streak = 0
     print(f"OK    pull tally: {total} pulls on crank {gacha_id}")
     for label in sorted(order, key=lambda x: (x.startswith("item"), -counts[x])):
         print(f"      {label:<10} {counts[label]:>5}  {100 * counts[label] / total:6.2f}%")
-    print(f"      first UZ or better on pull: {first_high}")
+    print(f"      longest run without {RANKS.get(args.pity_rank)} or better: {worst} pulls")
 
 
 def main():
@@ -113,6 +116,7 @@ def main():
     ap.add_argument("--server", required=True, help="e.g. http://127.0.0.1:8086")
     ap.add_argument("--app-ver", required=True)
     ap.add_argument("--admin-password", help="with --pulls: tops the test account up through the admin panel")
+    ap.add_argument("--pity-rank", type=int, default=7, help="rank the pull tally measures dry streaks against")
     ap.add_argument("--pulls", type=int, default=0, help="extra crank pulls to make and tally by rank")
     ap.add_argument("--stage", type=int, default=1001001, help="stage to start (default: first stage)")
     args = ap.parse_args()
