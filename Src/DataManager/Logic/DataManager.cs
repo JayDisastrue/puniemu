@@ -35,6 +35,12 @@ namespace Puniemu.Src.DataManager.Logic
         //Specifies if the current run is meant for WibWob or Puni
         public static bool IsWibWob { get; set; }
 
+        // Cheats (private servers). 0 disables. On every login the player's
+        // Y-Money / spirit is topped up to at least these amounts.
+        public static int CheatMinYMoney { get; private set; }
+
+        public static int CheatMinHitodama { get; private set; }
+
         //is the data download built in?
         public static void StaticInit(IConfiguration config)
         {
@@ -43,6 +49,8 @@ namespace Puniemu.Src.DataManager.Logic
             PostgresConnectionString = config["PostgresConnectionString"];
             MaxConnections = int.TryParse(config["MaxConnections"], out var maxConnections) ? maxConnections : 1500;
             MaxCachedAccounts = int.TryParse(config["MaxCachedAccounts"], out var maxCachedAccounts) ? maxCachedAccounts : 2000;
+            CheatMinYMoney = int.TryParse(config["Cheats:MinYMoney"], out var minYMoney) ? Math.Max(0, minYMoney) : 0;
+            CheatMinHitodama = int.TryParse(config["Cheats:MinHitodama"], out var minHitodama) ? Math.Max(0, minHitodama) : 0;
             GameVersion = config["GameVersion"];
             ServerName = config["ServerName"];
             EmailForAuthMessages = config["EmailForAuthMessages"];

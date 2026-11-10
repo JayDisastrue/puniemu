@@ -18,6 +18,20 @@ namespace Puniemu.Src.Server.GameServer.Requests.Login.Logic
     public static class LoginHandler
     {
 
+        //Tops up Y-Money and spirit to the configured floors (Cheats section in appsettings). No-op when both are 0.
+        private static async Task ApplyCheatFloors(string gdkey)
+        {
+            var minYMoney = DataManager.Logic.DataManager.CheatMinYMoney;
+            var minHitodama = DataManager.Logic.DataManager.CheatMinHitodama;
+            if (minYMoney <= 0 && minHitodama <= 0) return;
+            var userData = await UserDataManager.Logic.UserDataManager.GetYwpUserAsync<YwpUserData>(gdkey, "ywp_user_data");
+            if (userData == null) return;
+            if (userData.YMoney >= minYMoney && userData.Hitodama >= minHitodama) return;
+            userData.YMoney = Math.Max(userData.YMoney, minYMoney);
+            userData.Hitodama = Math.Max(userData.Hitodama, minHitodama);
+            await UserDataManager.Logic.UserDataManager.SetYwpUserAsync(gdkey, "ywp_user_data", userData);
+        }
+
         public static async Task HandleAsync(HttpContext ctx)
         {
             ctx.Request.EnableBuffering();
@@ -50,6 +64,7 @@ namespace Puniemu.Src.Server.GameServer.Requests.Login.Logic
                 }
             }
             await UserDataManager.Logic.UserDataManager.SetYwpUserAsync(deserialized.Gdkey, "ywp_user_map", userMap.ToString());
+            await ApplyCheatFloors(deserialized.Gdkey!);
             //Construct response
             CommonLoginResponse res = new CommonLoginResponse();
             if (DataManager.Logic.DataManager.IsWibWob)
