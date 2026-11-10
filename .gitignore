@@ -428,3 +428,6 @@ Tools/sharedLogic/__pycache__
 /appsettings.json
 /dataDownload
 /.env
+/translations
+/Resources.jp
+/Resources.from-wibwob.list
