@@ -89,15 +89,20 @@ def main():
     level_one = {row[0] for row in table(args.resources, "ywp_mst_youkai_level") if len(row) > 3 and row[1] == "1"}
     level_any = {row[0] for row in table(args.resources, "ywp_mst_youkai_level") if len(row) > 3}
     no_level = collections.Counter()
+    not_playable = 0
     by_rank = collections.defaultdict(list)
     other_ranks = collections.Counter()
     for row in table(args.resources, "ywp_mst_youkai"):
         # column 0 is the Yo-kai id, column 3 its rank
-        if len(row) > 3 and row[0].isdigit() and row[3].isdigit() and int(row[3]) in RANK_NAMES:
-            by_rank[int(row[3])].append(int(row[0]))
-            # column 5 is the level type
-            if len(row) > 5 and row[5] not in level_one:
+        if len(row) > 7 and row[0].isdigit() and row[3].isdigit() and int(row[3]) in RANK_NAMES:
+            # column 7 is the max level: 0 marks enemy and boss entries, which nobody can own
+            if not row[7].isdigit() or int(row[7]) <= 0:
+                not_playable += 1
+            # column 5 is the level type; without rows in the level table the Yo-kai could never level
+            elif row[5] not in level_one:
                 no_level[(row[5], "no level-1 row" if row[5] in level_any else "not in level table")] += 1
+            else:
+                by_rank[int(row[3])].append(int(row[0]))
         else:
             other_ranks[row[3] if len(row) > 3 else "?"] += 1
     ranks = sorted(r for r in by_rank if odds.get(r, 0) > 0)
@@ -183,7 +188,9 @@ def main():
     if unused:
         print(f"ranks in the data that this profile never drops: {unused}")
     for (level_type, why), n in sorted(no_level.items()):
-        print(f"NOTE: {n} Yo-kai use level type {level_type!r}: {why}")
+        print(f"left out: {n} Yo-kai with level type {level_type!r} ({why}), so they could never level")
+    if not_playable:
+        print(f"left out: {not_playable} enemy/boss entries (max level 0)")
     if other_ranks:
         print(f"Yo-kai rows with a rank value this server has no name for: {dict(other_ranks)}")
     print(f"cranks in ywp_mst_gacha: {len(gacha_ids)}; pools built: {made}; existing pools kept: {kept}")

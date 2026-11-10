@@ -144,7 +144,8 @@ namespace Puniemu.Src.Server.Admin
             var gdkey = Gdkey(body);
             await LoadUserData(gdkey);
             bool max = (bool?)body["max"] ?? false;
-            var all = MstYoukai().Items.Select(x => (long)x.YoukaiId).ToList();
+            //Max level 0 marks enemy and boss entries, rank 0 marks unranked ones: neither can be owned
+            var all = MstYoukai().Items.Where(x => x.MaxLevel > 0 && (int)x.YoukaiRarity > 0).Select(x => (long)x.YoukaiId).ToList();
             await GiveYokaiList(gdkey, all, max);
             return await DescribeAccount(gdkey);
         }
@@ -226,7 +227,7 @@ namespace Puniemu.Src.Server.Admin
         {
             var gm = DataManager.Logic.DataManager.GameDataManager;
             var yokai = new TableParser.Logic.TableParser(gm.GetTableStringFromJson("ywp_mst_youkai")).Table
-                .Where(row => row.Length > 1)
+                .Where(row => row.Length > 7 && row[3] != "0" && row[7] != "0")
                 .Select(row => new { id = row[0], name = row[1] });
             var items = new TableParser.Logic.TableParser(gm.GetTableStringFromJson("ywp_mst_item")).Table
                 .Where(row => row.Length > 2)
