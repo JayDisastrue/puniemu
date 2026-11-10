@@ -83,7 +83,7 @@ def main():
 
     c.step("init", lambda: c.post("init.nhn"))
     c.step("getMaster (all)", lambda: c.post("getMaster.nhn", tableNames="all"))
-    c.step("getGdkeyAccounts", lambda: c.post("getGdkeyAccounts.nhn"))
+    c.step("getGdkeyAccounts", lambda: c.post("getGdkeyAccounts.nhn", gdkeys=[{"gdkey": c.gdkey}]))
     c.step("createUser", lambda: c.post("createUser.nhn", iconID=1, playerName="SmokeTest", playerSexType="1",
                                         mstVersionVer=0))
     login = c.step("login", lambda: c.post("login.nhn"))
@@ -91,7 +91,8 @@ def main():
         missing = [k for k, v in login.items() if v is None]
         if missing:
             print(f"      login answered null for: {' '.join(sorted(missing))}")
-    for endpoint in ("userInfoRefresh", "map", "getMission", "initGacha", "initCollectMenu", "initWatch",
+    c.step("userInfoRefresh", lambda: c.post("userInfoRefresh.nhn", requireInfoList=["ywp_user_data", "ywp_user_youkai"]))
+    for endpoint in ("map", "getMission", "initGacha", "initCollectMenu", "initWatch",
                      "friend", "getPresentBox", "loginStamp", "initGoku", "initCrystal", "initScoreAttack"):
         c.step(endpoint, lambda e=endpoint: c.post(e + ".nhn"))
     c.step(f"gameStart (stage {args.stage})", lambda: c.post("gameStart.nhn", stageId=args.stage, battleType=0))
