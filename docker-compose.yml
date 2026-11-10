@@ -1,16 +1,45 @@
-# Local Postgres for Puniemu. Start with: docker compose up -d
+# Puniemu + its Postgres. Either run this file on its own, or copy the two
+# services (and the puni_db volume) into an existing compose file.
+# Needs in .env: PUNI_DB_PASSWORD, PUNI_ADMIN_PASSWORD, PUNI_PUBLIC_URL
 services:
-  db:
-    image: postgres:16
+  puni-db:
+    image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: puniemu
-      POSTGRES_PASSWORD: puniemu
-      POSTGRES_DB: puniemu
-    ports:
-      - "127.0.0.1:5432:5432"
+      POSTGRES_DB: puni
+      POSTGRES_USER: puni
+      POSTGRES_PASSWORD: ${PUNI_DB_PASSWORD:?Set PUNI_DB_PASSWORD in .env}
     volumes:
-      - puniemu-db:/var/lib/postgresql/data
+      - puni_db:/var/lib/postgresql/data
       - ./Database/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U puni -d puni"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  puni:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      puni-db:
+        condition: service_healthy
+    environment:
+      PostgresConnectionString: Host=puni-db;Database=puni;Username=puni;Password=${PUNI_DB_PASSWORD}
+      IsWibWob: "false"
+      GameVersion: "4.177.0"
+      ServerName: Puni Homelab
+      # Address the game client uses to reach this server, e.g. https://puni.example.com
+      DataDownloadURL: ${PUNI_PUBLIC_URL:?Set PUNI_PUBLIC_URL in .env}/eal
+      DataDownloadPath: /app/dataDownload/eal
+      MaxConnections: "100"
+      MaxCachedAccounts: "200"
+      AdminPassword: ${PUNI_ADMIN_PASSWORD:?Set PUNI_ADMIN_PASSWORD in .env}
+    volumes:
+      - ./dataDownload:/app/dataDownload:ro
+    ports:
+      - "127.0.0.1:8086:8080"
+    stop_grace_period: 30s
+
 volumes:
-  puniemu-db:
+  puni_db:

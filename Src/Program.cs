@@ -142,6 +142,18 @@ class Program
 
             await next();
         });
+        //Optionally serve the data download (the "eal" folder) from this server at /eal
+        var dataDownloadPath = builder.Configuration["DataDownloadPath"];
+        if (!string.IsNullOrEmpty(dataDownloadPath) && Directory.Exists(dataDownloadPath))
+        {
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(Path.GetFullPath(dataDownloadPath)),
+                RequestPath = "/eal",
+                ServeUnknownFileTypes = true
+            });
+            Console.WriteLine("serving data download at /eal from " + dataDownloadPath);
+        }
         //Assign handlers
         Server.Admin.AdminHandler.Map(app);
         AssignCustomAuthHandlers(app);

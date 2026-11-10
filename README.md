@@ -39,6 +39,16 @@ In `appsettings.json`:
 - `DataDownloadURL`: where the client fetches the data download from.
 - `AdminPassword`: enables the admin panel at `/admin` (see below). Leave empty to disable it.
 
+## Docker 🐳
+
+`docker-compose.yml` runs the server and its Postgres. Put the master data in `Resources/` and the data download in `dataDownload/eal/` first, set `PUNI_DB_PASSWORD`, `PUNI_ADMIN_PASSWORD` and `PUNI_PUBLIC_URL` in `.env`, then:
+
+```bash
+docker compose up -d --build
+```
+
+Every `appsettings.json` key can be given as an environment variable instead, which is what the compose file does. With `DataDownloadPath` set, the server serves that folder at `/eal`, so no separate file host is needed. `Resources/` is compiled into the image: rebuild after changing it.
+
 ## Admin panel 🛠️
 
 Set `AdminPassword` in `appsettings.json`, then open `http://YOUR_SERVER:8080/admin` in a browser and enter it. From there you can pick any account (search by player name or friend code) and:

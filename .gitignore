@@ -426,3 +426,5 @@ Tools/sharedLogic/__pycache__
 
 # Local config (holds DB credentials)
 /appsettings.json
+/dataDownload
+/.env
