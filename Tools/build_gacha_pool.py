@@ -13,8 +13,8 @@ Pools already in gacha_pool.txt are kept unless --replace is given.
 Profiles (chance per pull):
   all      Every rank can drop. This is the default. Not published anywhere; a made-up
            curve that gets rarer with rank:
-           E 17, D 15, C 13, B 11, A 9.5, S 8, SS 6.5, SSS 5, Z 4.5, ZZ 3, ZZZ 1.8,
-           UZ 1, UZ+ 0.6, UZ++ 0.4, items 3.7 (3.6 book, 0.1 G book).
+           E 30, D 22, C 16, B 11, A 7, S 4, SS 2.4, SSS 1.5, Z 1, ZZ 0.6, ZZZ 0.35,
+           UZ 0.22, UZ+ 0.14, UZ++ 0.09, items 3.7 (3.6 book, 0.1 G book).
   modern   Rank totals published for a late-2026 event crank:
            Z 59.8, ZZ 23, ZZZ 8, UZ 2.7, UZ+ 2, UZ++ 0.8, items 3.7.
            Yo-kai below Z do not drop.
@@ -51,8 +51,8 @@ PROFILES = {
     "classic": {"ranks": {4: 55.0, 5: 30.0, 6: 10.0},
                 "items": [{"key": "i1", "weight": 4.9, "rank": 4, "names": [BOOK]},
                           {"key": "i2", "weight": 0.1, "rank": 7, "names": [G_BOOK]}]},
-    "all": {"ranks": {1: 17, 2: 15, 3: 13, 4: 11, 5: 9.5, 6: 8, 7: 6.5, 8: 5, 9: 4.5, 10: 3, 11: 1.8, 12: 1.0,
-                      13: 0.6, 14: 0.4},
+    "all": {"ranks": {1: 30, 2: 22, 3: 16, 4: 11, 5: 7, 6: 4, 7: 2.4, 8: 1.5, 9: 1.0, 10: 0.6, 11: 0.35, 12: 0.22,
+                      13: 0.14, 14: 0.09},
             "items": BOOK_TIERS},
 }
 
