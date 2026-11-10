@@ -37,7 +37,18 @@ In `appsettings.json`:
 - `IsWibWob`: `true` for the English client (*Wibble Wobble*), `false` for the Japanese client (*Puni Puni*). `Resources/` must be the matching data set.
 - `GameVersion`: must equal the `appVer` your client sends, or login is refused.
 - `DataDownloadURL`: where the client fetches the data download from.
-- `Cheats:MinYMoney` / `Cheats:MinHitodama`: on every login, Y-Money and spirit are topped up to at least these amounts. Set both to `0` to play legit.
+- `AdminPassword`: enables the admin panel at `/admin` (see below). Leave empty to disable it.
+
+## Admin panel 🛠️
+
+Set `AdminPassword` in `appsettings.json`, then open `http://YOUR_SERVER:8080/admin` in a browser and enter it. From there you can pick any account (search by player name or friend code) and:
+
+- set its Y-Money and spirit,
+- give it a Yo-kai, optionally at max level and max Soultimate,
+- give it every Yo-kai in the master data,
+- give it any item.
+
+Nothing here applies to players automatically: an account only changes when the admin edits it. Restart the game on the affected device afterwards so the client reloads its save. The password is sent on every request, so only use the panel over your own network or behind HTTPS.
 
 ## DISCLAIMERS 🚫
 

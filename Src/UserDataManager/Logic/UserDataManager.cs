@@ -370,6 +370,31 @@ namespace Puniemu.Src.UserDataManager.Logic
             return account.YwpUserTables!;
         }
 
+        // Lists accounts for the admin panel, newest login first. Reads the database, so
+        // changes made in the last minute (not flushed yet) may not show in the summary.
+        public static async Task<List<Dictionary<string, string?>>> ListAccountsAsync(string? search)
+        {
+            await using var cmd = _dataSource!.CreateCommand(
+                "SELECT gdkey, character_id, last_lgn_time, ywp_user_tables->'ywp_user_data'->>'playerName' AS player_name " +
+                "FROM account " +
+                "WHERE @q = '' OR character_id ILIKE '%' || @q || '%' OR ywp_user_tables->'ywp_user_data'->>'playerName' ILIKE '%' || @q || '%' " +
+                "ORDER BY last_lgn_time DESC NULLS LAST LIMIT 200");
+            cmd.Parameters.AddWithValue("q", (search ?? "").Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_"));
+            await using var reader = await cmd.ExecuteReaderAsync();
+            var accounts = new List<Dictionary<string, string?>>();
+            while (await reader.ReadAsync())
+            {
+                accounts.Add(new Dictionary<string, string?>
+                {
+                    ["gdkey"] = reader.GetString(0),
+                    ["characterId"] = reader.IsDBNull(1) ? null : reader.GetString(1),
+                    ["lastLogin"] = reader.IsDBNull(2) ? null : reader.GetString(2),
+                    ["playerName"] = reader.IsDBNull(3) ? null : reader.GetString(3),
+                });
+            }
+            return accounts;
+        }
+
         public static async Task<string> GetGdkeyFromCharacterId(string charId)
         {
             await using var cmd = _dataSource!.CreateCommand("SELECT gdkey FROM account WHERE character_id = @character_id");

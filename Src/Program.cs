@@ -143,6 +143,7 @@ class Program
             await next();
         });
         //Assign handlers
+        Server.Admin.AdminHandler.Map(app);
         AssignCustomAuthHandlers(app);
         AssignL5IDHandlers(app);
         AssignGameServerHandlers(app);
