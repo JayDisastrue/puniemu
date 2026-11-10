@@ -93,10 +93,51 @@ def main():
     # Only after createUser: the server deletes an account listed here that has no player yet
     c.step("getGdkeyAccounts", lambda: c.post("getGdkeyAccounts.nhn", gdkeys=[{"gdkey": c.gdkey}]))
     c.step("userInfoRefresh", lambda: c.post("userInfoRefresh.nhn", requireInfoList=["ywp_user_data", "ywp_user_youkai"]))
+    gacha_res = None
     for endpoint in ("map", "getMission", "initGacha", "initCollectMenu", "initWatch",
                      "friend", "getPresentBox", "loginStamp", "initGoku", "initCrystal", "initScoreAttack"):
-        c.step(endpoint, lambda e=endpoint: c.post(e + ".nhn"))
-    c.step(f"gameStart (stage {args.stage})", lambda: c.post("gameStart.nhn", stageId=args.stage, battleType=0))
+        res = c.step(endpoint, lambda e=endpoint: c.post(e + ".nhn"))
+        if endpoint == "initGacha":
+            gacha_res = res
+    start = c.step(f"gameStart (stage {args.stage})", lambda: c.post("gameStart.nhn", stageId=args.stage, battleType=0))
+
+    # The steps below change the save: clear the stage, then pull the crank once.
+    if isinstance(start, dict) and start.get("requestId"):
+        team = [{"youkaiId": y.get("youkaiId"), "damageTotal": 1000, "damageMax": 500, "eraseNum": 50, "eraseSize": 3,
+                 "eraseSizeMax": 8, "linkSizeMax": 5, "skillUseNum": 1}
+                for y in start.get("userYoukaiList") or [] if isinstance(y, dict)]
+        enemies = [{"enemyId": e.get("enemyId"), "deadEndOrder": i + 1, "deadEndType": 1}
+                   for i, e in enumerate(start.get("enemyYoukaiList") or []) if isinstance(e, dict)]
+        print(f"      stage has {len(enemies)} enemies, team of {len(team)}")
+        end = c.step("gameEnd (stage cleared)", lambda: c.post(
+            "gameEnd.nhn", requestId=start["requestId"], stageId=args.stage, battleType=0, cheatFlg=0, score=50000,
+            clearTimeSec=60, clearTimeLongSec=60000, comboMax=10, damageTotal=5000, eraseNumTotal=200,
+            eraseSizeAve=3.0, eraseSizeMax=8, feverTimeNum=1, bonusBlockNum=0, recvDamageTotal=0,
+            resultRecvAtkNum=0, resultYoukaiHP=start.get("youkaiHP", 100), scoreLog="", themeResultList=[],
+            userYoukaiResultList=team, enemyYoukaiResultList=enemies, ywp_mst_game_const=[]))
+        if isinstance(end, dict):
+            result = end.get("userGameResultData") or {}
+            print(f"      result: exp {result.get('exp')}, money {result.get('money')}, "
+                  f"reward yokai {result.get('rewardYoukaiId')}")
+    else:
+        print("SKIP  gameEnd: gameStart gave no requestId")
+
+    rows = []
+    if isinstance(gacha_res, dict) and isinstance(gacha_res.get("ywp_mst_gacha"), str):
+        rows = [r.split("|") for r in gacha_res["ywp_mst_gacha"].split("*")]
+    # column 3 is the price type (1 = Y-Money), column 5 the price
+    paid = sorted((r for r in rows if len(r) > 5 and r[3] == "1" and r[5].isdigit()), key=lambda r: int(r[5]))
+    if paid:
+        gid, price = int(paid[0][0]), paid[0][5]
+        pull = c.step(f"executeGacha (crank {gid}, {price} Y-Money)",
+                      lambda: c.post("executeGacha.nhn", gachaId=gid, gachaCnt=1, activeDeckId=1, requestYoukaiId=0,
+                                     mstVersionVer=0, token=""))
+        if isinstance(pull, dict):
+            print(f"      answer keys: {' '.join(sorted(pull))[:300]}")
+    else:
+        print("SKIP  executeGacha: no Y-Money crank found in initGacha")
+
+    c.step("login again (save still loads)", lambda: c.post("login.nhn"))
 
     print(f"\n{len(c.failed)} step(s) failed" + (": " + ", ".join(c.failed) if c.failed else ""))
     print("The test account stays on the server; it shows in the admin panel as SmokeTest.")
