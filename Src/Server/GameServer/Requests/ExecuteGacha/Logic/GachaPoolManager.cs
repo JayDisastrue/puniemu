@@ -172,14 +172,25 @@ namespace Puniemu.Src.Server.GameServer.Requests.ExecuteGacha.Logic
 
                     RegisterItemAndGetPrize(userItemTable, resultItem, out var itemWon);
 
+                    //Items show as rank B in a gray capsule unless the pool gives this item tier a rank
+                    var itemRank = RarityType.RarityB;
+                    var itemCapsule = placeHolderCapsule;
+                    if (gacha.ItemRanks != null && gacha.ItemRanks.TryGetValue(pool, out var itemRankValue)
+                        && Enum.IsDefined(typeof(RarityType), itemRankValue)
+                        && GachaService.CAPSULE_CLRS.TryGetValue((RarityType)itemRankValue, out var rankCapsule))
+                    {
+                        itemRank = (RarityType)itemRankValue;
+                        itemCapsule = rankCapsule;
+                    }
+
                     return new GachaPrize
                     {
                         Youkai = null,
                         Icon = null,
                         YMoney = null,
-                        CapsuleColor = placeHolderCapsule,
+                        CapsuleColor = itemCapsule,
                         PrizeType = PrizeType.Item,
-                        RarityType = RarityType.RarityB,
+                        RarityType = itemRank,
                         Item = itemWon,
                         ConvertItemInfo = null
                     };

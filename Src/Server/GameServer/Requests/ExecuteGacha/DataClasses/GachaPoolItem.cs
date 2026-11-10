@@ -20,6 +20,9 @@ namespace Puniemu.Src.Server.GameServer.Requests.ExecuteGacha.DataClasses
         [JsonProperty("items")]
         public Dictionary<string, List<long>> Items { get; set; }
 
+        //Optional: rank shown for prizes from an item pool (pool key -> rank number). Sets the capsule colour too.
+        [JsonProperty("itemRanks")]
+        public Dictionary<string, int>? ItemRanks { get; set; }
         [JsonProperty("rateUp")]
         public Dictionary<long, double>? RateUp { get; set; }
     }

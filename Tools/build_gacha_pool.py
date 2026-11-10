@@ -1,14 +1,29 @@
 """Write crank pools (Resources/gacha_pool.txt) for every crank in ywp_mst_gacha.
 
 The real pools and odds never leave NHN's servers, so they cannot be fetched.
-This builds them instead: every crank without a pool gets one containing every
-Yo-kai in ywp_mst_youkai, grouped by rank, with the odds per rank below.
+This builds them instead: every crank without a pool gets one with Yo-kai
+grouped by rank plus item tiers, using one of the odds profiles below.
 Pools already in gacha_pool.txt are kept unless --replace is given.
 
+    python3 Tools/build_gacha_pool.py --resources Resources --dry-run
     python3 Tools/build_gacha_pool.py --resources Resources
-    python3 Tools/build_gacha_pool.py --resources Resources --odds my_odds.json
+    python3 Tools/build_gacha_pool.py --resources Resources --profile all --replace
+    python3 Tools/build_gacha_pool.py --resources Resources --config my_pool.json
 
-An odds file is JSON mapping rank number to weight, e.g. {"1": 30, "13": 0.5}.
+Profiles (chance per pull):
+  modern   Rank totals published for two late-2026 event cranks:
+           Z 61.1, ZZ 23, ZZZ 8, UZ 3, UZ+ 1.2, items 3.7 (3.6 book, 0.1 G book).
+           Yo-kai below Z do not drop. This is the default.
+  classic  A fan-site estimate for the original crank: B 55, A 30, S 10, items 5.
+  all      Every rank from E to UZ+ can drop, rarer ranks less often, items 3.7.
+
+A --config file is JSON in the same shape as a profile, e.g.
+  {"ranks": {"9": 61.1, "13": 1.2},
+   "items": [{"key": "i1", "weight": 3.6, "rank": 4, "names": ["ひっさつの秘伝書"]},
+             {"key": "i2", "weight": 0.1, "rank": 7, "ids": [123456]}]}
+Item tiers match items by exact name in ywp_mst_item or by id. "rank" is the
+rank (and capsule colour) the prize is shown with.
+
 Ranks: 1 E, 2 D, 3 C, 4 B, 5 A, 6 S, 7 SS, 8 SSS, 9 Z, 10 ZZ, 11 ZZZ, 12 UZ, 13 UZ+.
 Rebuild the server image afterwards: Resources are compiled in.
 """
@@ -21,9 +36,19 @@ import sys
 
 RANK_NAMES = {1: "E", 2: "D", 3: "C", 4: "B", 5: "A", 6: "S", 7: "SS", 8: "SSS", 9: "Z", 10: "ZZ", 11: "ZZZ",
               12: "UZ", 13: "UZ+"}
-# Relative chance of each rank per pull. Only ranks that have Yo-kai are used.
-DEFAULT_ODDS = {1: 28, 2: 24, 3: 18, 4: 12, 5: 8, 6: 4.5, 7: 2.5, 8: 1.2, 9: 0.7, 10: 0.45, 11: 0.3, 12: 0.2,
-                13: 0.15}
+BOOK = "ひっさつの秘伝書"       # Soultimate secret book
+G_BOOK = "ひっさつGの秘伝書"    # the rarer G book
+BOOK_TIERS = [{"key": "i1", "weight": 3.6, "rank": 4, "names": [BOOK]},
+              {"key": "i2", "weight": 0.1, "rank": 7, "names": [G_BOOK]}]
+PROFILES = {
+    "modern": {"ranks": {9: 61.1, 10: 23.0, 11: 8.0, 12: 3.0, 13: 1.2}, "items": BOOK_TIERS},
+    "classic": {"ranks": {4: 55.0, 5: 30.0, 6: 10.0},
+                "items": [{"key": "i1", "weight": 4.9, "rank": 4, "names": [BOOK]},
+                          {"key": "i2", "weight": 0.1, "rank": 7, "names": [G_BOOK]}]},
+    "all": {"ranks": {1: 24, 2: 20, 3: 16, 4: 12, 5: 9, 6: 6, 7: 4, 8: 2.5, 9: 1.5, 10: 0.7, 11: 0.3, 12: 0.2,
+                      13: 0.1},
+            "items": BOOK_TIERS},
+}
 
 
 def table(resources, name):
@@ -35,28 +60,46 @@ def table(resources, name):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--resources", default="Resources")
-    ap.add_argument("--odds", help="JSON file: rank number -> weight")
+    ap.add_argument("--profile", choices=sorted(PROFILES), default="modern")
+    ap.add_argument("--config", help="JSON file with ranks and item tiers; overrides --profile")
     ap.add_argument("--replace", action="store_true", help="rebuild pools that already exist too")
     ap.add_argument("--dry-run", action="store_true", help="print the summary, write nothing")
     args = ap.parse_args()
 
-    odds = dict(DEFAULT_ODDS)
-    if args.odds:
-        with open(args.odds, encoding="utf-8") as f:
-            odds = {int(k): float(v) for k, v in json.load(f).items()}
+    profile = PROFILES[args.profile]
+    if args.config:
+        with open(args.config, encoding="utf-8") as f:
+            profile = json.load(f)
+    odds = {int(k): float(v) for k, v in profile.get("ranks", {}).items()}
 
     by_rank = collections.defaultdict(list)
-    skipped = 0
+    other_ranks = collections.Counter()
     for row in table(args.resources, "ywp_mst_youkai"):
         # column 0 is the Yo-kai id, column 3 its rank
         if len(row) > 3 and row[0].isdigit() and row[3].isdigit() and int(row[3]) in RANK_NAMES:
             by_rank[int(row[3])].append(int(row[0]))
         else:
-            skipped += 1
+            other_ranks[row[3] if len(row) > 3 else "?"] += 1
     ranks = sorted(r for r in by_rank if odds.get(r, 0) > 0)
     if not ranks:
-        print("No Yo-kai with a known rank found in ywp_mst_youkai; nothing written.")
+        print("No Yo-kai found for the ranks in this profile; nothing written.")
         return 1
+
+    # column 0 is the item id, column 2 its name
+    items = [(int(row[0]), row[2]) for row in table(args.resources, "ywp_mst_item")
+             if len(row) > 2 and row[0].isdigit()]
+    tiers = []
+    for tier in profile.get("items", []):
+        names = set(tier.get("names", []))
+        ids = [i for i, name in items if name in names] + [int(i) for i in tier.get("ids", [])]
+        if ids and float(tier.get("weight", 0)) > 0:
+            tiers.append((tier["key"], float(tier["weight"]), tier.get("rank"), sorted(set(ids))))
+        else:
+            print(f"WARNING: item tier {tier.get('key')} matched no item ({', '.join(names) or 'no names'}); left out.")
+    for key, _, _, _ in tiers:
+        if not key.startswith("i"):
+            print(f"Item tier key {key!r} must start with 'i'.")
+            return 1
 
     pool_path = os.path.join(args.resources, "gacha_pool.txt")
     existing = {}
@@ -72,33 +115,46 @@ def main():
             template = pool["convertItem"]
             break
     convert = {}
-    if template:
-        known = sorted(int(k) for k in template if k.isdigit())
+    known = sorted(int(k) for k in template if k.isdigit())
+    if known:
         for r in RANK_NAMES:
             src = max((k for k in known if k <= r), default=known[0])
             convert[str(r)] = template[str(src)]
 
+    weights = {str(r): odds[r] for r in ranks}
+    weights.update({key: weight for key, weight, _, _ in tiers})
+    entry = {
+        "convertItem": convert,
+        "weights": weights,
+        "youkai": {str(r): by_rank[r] for r in ranks},
+        "items": {key: ids for key, _, _, ids in tiers},
+        "itemRanks": {key: rank for key, _, rank, _ in tiers if rank},
+        "rateUp": None,
+    }
+
     gacha_ids = [int(row[0]) for row in table(args.resources, "ywp_mst_gacha") if row and row[0].isdigit()]
-    total = sum(odds[r] for r in ranks)
     made, kept = 0, 0
     out = {} if args.replace else dict(existing)
     for gid in gacha_ids:
         if not args.replace and str(gid) in existing:
             kept += 1
             continue
-        out[str(gid)] = {
-            "gachaId": gid,
-            "convertItem": convert,
-            "weights": {str(r): odds[r] for r in ranks},
-            "youkai": {str(r): by_rank[r] for r in ranks},
-            "items": {},
-            "rateUp": None,
-        }
+        out[str(gid)] = dict(entry, gachaId=gid)
         made += 1
 
-    print(f"Yo-kai read: {sum(len(v) for v in by_rank.values())} ({skipped} rows skipped: no usable rank)")
+    total = sum(weights.values())
+    print(f"profile: {args.config or args.profile}")
     for r in ranks:
         print(f"  rank {RANK_NAMES[r]:<4} {len(by_rank[r]):>5} Yo-kai  {100 * odds[r] / total:6.2f}% of pulls")
+    for key, weight, rank, ids in tiers:
+        names = [name for i, name in items if i in ids][:3]
+        shown = RANK_NAMES.get(rank, "B")
+        print(f"  item {key:<4} {len(ids):>5} items   {100 * weight / total:6.2f}% of pulls  shown as rank {shown}  {names}")
+    unused = {RANK_NAMES[r]: len(v) for r, v in sorted(by_rank.items()) if r not in ranks}
+    if unused:
+        print(f"ranks in the data that this profile never drops: {unused}")
+    if other_ranks:
+        print(f"Yo-kai rows with a rank value this server has no name for: {dict(other_ranks)}")
     print(f"cranks in ywp_mst_gacha: {len(gacha_ids)}; pools built: {made}; existing pools kept: {kept}")
     if not convert:
         print("WARNING: no existing pool defines convertItem, so pulling a maxed Yo-kai will fail.")
