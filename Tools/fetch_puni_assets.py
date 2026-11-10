@@ -5,6 +5,7 @@ copy in Resources.jp/) and saves every file under dataDownload/eal/, in the
 layout the client asks for. The server then serves that folder at /eal.
 
     python3 Tools/fetch_puni_assets.py --limit 20        # small test batch first
+    python3 Tools/fetch_puni_assets.py --estimate        # guess the total size, download nothing
     python3 Tools/fetch_puni_assets.py                   # everything
 
 Safe to stop and re-run: files already downloaded are skipped. It does not ask
@@ -14,6 +15,7 @@ import argparse
 import concurrent.futures
 import json
 import os
+import random
 import shutil
 import sys
 import threading
@@ -72,11 +74,38 @@ def fetch(url, dest, retries, delay):
     return 0, error
 
 
+def estimate(missing, sample_size):
+    """Asks the server for the size of a random sample of files and scales that up."""
+    sample = random.sample(missing, min(sample_size, len(missing)))
+    sizes = []
+    for _, url in sample:
+        try:
+            req = urllib.request.Request(url, headers=HEADERS, method="HEAD")
+            with urllib.request.urlopen(req, timeout=60) as r:
+                length = r.headers.get("Content-Length")
+                if length and length.isdigit():
+                    sizes.append(int(length))
+        except (urllib.error.URLError, OSError):
+            pass
+        time.sleep(0.1)
+    if not sizes:
+        print("could not read any file sizes from the server")
+        return 1
+    mean = sum(sizes) / len(sizes)
+    total = mean * len(missing) / 1e9
+    spread = (max(sizes) / 1e6, sorted(sizes)[len(sizes) // 2] / 1e3)
+    print(f"sampled {len(sizes)} of {len(missing)} files: average {mean / 1e3:.0f} KB, "
+          f"median {spread[1]:.0f} KB, largest {spread[0]:.1f} MB")
+    print(f"estimated download: about {total:.1f} GB (rough: likely between {total * 0.7:.1f} and {total * 1.4:.1f} GB)")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--resources", default="Resources")
     ap.add_argument("--out", default=os.path.join("dataDownload", "eal"))
     ap.add_argument("--limit", type=int, default=0, help="download at most this many missing files")
+    ap.add_argument("--estimate", action="store_true", help="estimate the total size from a sample; download nothing")
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--delay", type=float, default=0.2, help="seconds each worker waits after a file")
     ap.add_argument("--min-free-gb", type=float, default=5, help="stop when the disk has less free space than this")
@@ -91,6 +120,8 @@ def main():
     print(f"free disk space: {free:.1f} GB")
     if assets:
         print(f"example: {assets[0][1]}")
+    if args.estimate:
+        return estimate(missing, 300) if missing else 0
     if args.limit:
         missing = missing[:args.limit]
         print(f"limited to {len(missing)} files this run")
