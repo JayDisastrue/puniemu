@@ -14,7 +14,8 @@ Profiles (chance per pull):
   all      Every rank can drop. This is the default. Not published anywhere; a made-up
            curve that gets rarer with rank:
            E 30.65, D 22.5, C 16.5, B 11.5, A 7, S 4, SS 2.4, SSS 1.5, Z 1, ZZ 0.6,
-           ZZZ 0.35, UZ 0.22, UZ+ 0.14, UZ++ 0.09, items 1.55 (1.5 book, 0.05 G book).
+           ZZZ 0.35, UZ 0.22, UZ+ 0.14, UZ++ 0.09, and 1.55 of secret books in six tiers:
+           mini 0.5, small 0.4, normal 0.3, super 0.2, god 0.1, G 0.05.
   modern   Rank totals published for a late-2026 event crank:
            Z 59.8, ZZ 23, ZZZ 8, UZ 2.7, UZ+ 2, UZ++ 0.8, items 3.7.
            Yo-kai below Z do not drop.
@@ -43,7 +44,7 @@ import sys
 RANK_NAMES = {1: "E", 2: "D", 3: "C", 4: "B", 5: "A", 6: "S", 7: "SS", 8: "SSS", 9: "Z", 10: "ZZ", 11: "ZZZ",
               12: "UZ", 13: "UZ+", 14: "UZ++"}
 BOOK = "ひっさつの秘伝書"       # Soultimate secret book
-G_BOOK = "ひっさつGの秘伝書"    # the rarer G book
+G_BOOK = "ひっさつＧの秘伝書"   # the rarer G book (the data spells it with a full-width Ｇ)
 BOOK_TIERS = [{"key": "i1", "weight": 3.6, "rank": 4, "names": [BOOK]},
               {"key": "i2", "weight": 0.1, "rank": 7, "names": [G_BOOK]}]
 PROFILES = {
@@ -53,8 +54,12 @@ PROFILES = {
                           {"key": "i2", "weight": 0.1, "rank": 7, "names": [G_BOOK]}]},
     "all": {"ranks": {1: 30.65, 2: 22.5, 3: 16.5, 4: 11.5, 5: 7, 6: 4, 7: 2.4, 8: 1.5, 9: 1.0, 10: 0.6, 11: 0.35,
                       12: 0.22, 13: 0.14, 14: 0.09},
-            "items": [{"key": "i1", "weight": 1.5, "rank": 4, "names": [BOOK]},
-                      {"key": "i2", "weight": 0.05, "rank": 7, "names": [G_BOOK]}]},
+            "items": [{"key": "i1", "weight": 0.5, "rank": 3, "names": ["ミニひっさつの秘伝書"]},
+                      {"key": "i2", "weight": 0.4, "rank": 4, "names": ["小ひっさつの秘伝書"]},
+                      {"key": "i3", "weight": 0.3, "rank": 5, "names": [BOOK]},
+                      {"key": "i4", "weight": 0.2, "rank": 6, "names": ["超ひっさつの秘伝書"]},
+                      {"key": "i5", "weight": 0.1, "rank": 8, "names": ["神ひっさつの秘伝書"]},
+                      {"key": "i6", "weight": 0.05, "rank": 12, "names": [G_BOOK]}]},
 }
 
 
@@ -81,12 +86,18 @@ def main():
             profile = json.load(f)
     odds = {int(k): float(v) for k, v in profile.get("ranks", {}).items()}
 
+    level_one = {row[0] for row in table(args.resources, "ywp_mst_youkai_level") if len(row) > 3 and row[1] == "1"}
+    level_any = {row[0] for row in table(args.resources, "ywp_mst_youkai_level") if len(row) > 3}
+    no_level = collections.Counter()
     by_rank = collections.defaultdict(list)
     other_ranks = collections.Counter()
     for row in table(args.resources, "ywp_mst_youkai"):
         # column 0 is the Yo-kai id, column 3 its rank
         if len(row) > 3 and row[0].isdigit() and row[3].isdigit() and int(row[3]) in RANK_NAMES:
             by_rank[int(row[3])].append(int(row[0]))
+            # column 5 is the level type
+            if len(row) > 5 and row[5] not in level_one:
+                no_level[(row[5], "no level-1 row" if row[5] in level_any else "not in level table")] += 1
         else:
             other_ranks[row[3] if len(row) > 3 else "?"] += 1
     ranks = sorted(r for r in by_rank if odds.get(r, 0) > 0)
@@ -171,6 +182,8 @@ def main():
     unused = {RANK_NAMES[r]: len(v) for r, v in sorted(by_rank.items()) if r not in ranks}
     if unused:
         print(f"ranks in the data that this profile never drops: {unused}")
+    for (level_type, why), n in sorted(no_level.items()):
+        print(f"NOTE: {n} Yo-kai use level type {level_type!r}: {why}")
     if other_ranks:
         print(f"Yo-kai rows with a rank value this server has no name for: {dict(other_ranks)}")
     print(f"cranks in ywp_mst_gacha: {len(gacha_ids)}; pools built: {made}; existing pools kept: {kept}")

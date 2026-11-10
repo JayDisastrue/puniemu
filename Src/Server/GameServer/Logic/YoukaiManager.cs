@@ -118,16 +118,17 @@ namespace Puniemu.Src.Server.GameServer.Logic
                 await MissionManager.UpdateProgress(gdkey, MissionType.BefriendSpecificYokai, (int)YoukaiId, um, manualMissionSave);
                 await MissionManager.UpdateProgress(gdkey, MissionType.GetSpecificYokaiToLevel, (int)YoukaiId, progressToUpdate2: 1, paramUserMission: um, manualSave: manualMissionSave);
                 // add new youkai
-                var tmpIdx = 0;
-
-                var levelType = int.Parse(YoukaiMstTable.Table[MstYoukaiIndex][5]);
-                foreach (string[] str in YoukaiLevelMstTable.Table)
+                var levelType = YoukaiMstTable.Table[MstYoukaiIndex][5];
+                //Exp needed for level 2. Some Yo-kai use a level type the level table has no level-1 row for
+                //(or no rows at all); fall back to that type's first row, then to 0, instead of crashing.
+                var levelRow = YoukaiLevelMstTable.Table.FirstOrDefault(str => str.Length > 3 && str[0] == levelType && str[1] == "1")
+                    ?? YoukaiLevelMstTable.Table.FirstOrDefault(str => str.Length > 3 && str[0] == levelType);
+                int expDenominator = 0;
+                if (levelRow == null || !int.TryParse(levelRow[3], out expDenominator))
                 {
-                    if (str[0] == levelType.ToString() && str[1] == "1")
-                        break;
-                    tmpIdx++;
+                    Console.WriteLine($"[!] No level data for Yo-kai {YoukaiId} (level type {levelType}).");
                 }
-                userYokai.AddItem(new YwpUserYoukai { YoukaiId = YoukaiId, Level = 1, Exp = 0, Hp =  int.Parse(YoukaiMstTable.Table[MstYoukaiIndex][8]), Atk = int.Parse(YoukaiMstTable.Table[MstYoukaiIndex][10]), ExpDenominator = int.Parse(YoukaiLevelMstTable.Table[tmpIdx][3]), ExpNumerator = 0, Percentage = 0, BefriendDate = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), BreakLimitCount = 0 });
+                userYokai.AddItem(new YwpUserYoukai { YoukaiId = YoukaiId, Level = 1, Exp = 0, Hp =  int.Parse(YoukaiMstTable.Table[MstYoukaiIndex][8]), Atk = int.Parse(YoukaiMstTable.Table[MstYoukaiIndex][10]), ExpDenominator = expDenominator, ExpNumerator = 0, Percentage = 0, BefriendDate = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), BreakLimitCount = 0 });
 
             }
             AddYoukaiSkill(ref userSkill, YoukaiId);
