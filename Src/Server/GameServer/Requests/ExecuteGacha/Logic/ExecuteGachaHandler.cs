@@ -148,10 +148,12 @@ namespace Puniemu.Src.Server.GameServer.Requests.ExecuteGacha.Logic
             {
                 var mode = GachaMaxedYokaiMode.ConvertToItem;
                 if (DataManager.Logic.DataManager.IsWibWob) mode = GachaMaxedYokaiMode.RerollUntilValid;
+                var pity = await GachaPoolManager.LoadPity(deserialized.Level5UserId!);
                 for (int i = 0; i < pullCount; i++)
                 {
-                    prizes.Add(await GachaPoolManager.CrankReward(gachaId, userYokaiTable, userSkillTable, dictionaryListTable, userItemtable, userBonus, deserialized.Level5UserId, mode));
+                    prizes.Add(await GachaPoolManager.CrankRewardWithPity(gachaId, userYokaiTable, userSkillTable, dictionaryListTable, userItemtable, userBonus, deserialized.Level5UserId, mode, pity));
                 }
+                await GachaPoolManager.SavePity(deserialized.Level5UserId!, pity);
             }
             
             else if (deserialized.RequestYoukaiId != 0 && GachaYoukaiChoiceManager.IsChoiceOk(gachaId, deserialized.RequestYoukaiId))

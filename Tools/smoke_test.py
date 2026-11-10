@@ -63,10 +63,57 @@ class Client:
         return res
 
 
+RANKS = {1: "E", 2: "D", 3: "C", 4: "B", 5: "A", 6: "S", 7: "SS", 8: "SSS", 9: "Z", 10: "ZZ", 11: "ZZZ", 12: "UZ",
+         13: "UZ+", 14: "UZ++"}
+
+
+def tally_pulls(c, args, gacha_id):
+    """Pull one crank many times and print how often each rank came out."""
+    body = json.dumps({"gdkey": c.gdkey, "ymoney": 99999999}).encode()
+    req = urllib.request.Request(c.server + "/admin/api/currency", data=body, method="POST",
+                                 headers={"X-Admin-Password": args.admin_password, "Content-Type": "application/json"})
+    try:
+        urllib.request.urlopen(req, timeout=60).read()
+    except urllib.error.HTTPError as e:
+        print(f"FAIL  pull tally: admin top-up answered HTTP {e.code}")
+        c.failed.append("pull tally")
+        return
+    counts, total, order, first_high = {}, 0, [], None
+    while total < args.pulls:
+        try:
+            res = c.post("executeGacha.nhn", gachaId=gacha_id, gachaCnt=1, activeDeckId=1, requestYoukaiId=0,
+                         mstVersionVer=0, token="")
+        except Exception as e:
+            print(f"FAIL  pull tally after {total} pulls: {type(e).__name__}: {e}")
+            c.failed.append("pull tally")
+            return
+        # A single prize may be written at the top level instead of in the list
+        prizes = res.get("gachaPrizeList") or ([res] if res.get("prizeType") else [])
+        if res.get("dialogMsg") or not prizes:
+            print(f"MSG   pull tally after {total} pulls: {res.get('dialogMsg')!r}")
+            c.failed.append("pull tally")
+            return
+        for p in prizes:
+            total += 1
+            is_item = p.get("prizeType") == 1
+            label = ("item " if is_item else "") + RANKS.get(p.get("rarityType"), str(p.get("rarityType")))
+            counts[label] = counts.get(label, 0) + 1
+            if label not in order:
+                order.append(label)
+            if not is_item and (p.get("rarityType") or 0) >= 12 and first_high is None:
+                first_high = total
+    print(f"OK    pull tally: {total} pulls on crank {gacha_id}")
+    for label in sorted(order, key=lambda x: (x.startswith("item"), -counts[x])):
+        print(f"      {label:<10} {counts[label]:>5}  {100 * counts[label] / total:6.2f}%")
+    print(f"      first UZ or better on pull: {first_high}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--server", required=True, help="e.g. http://127.0.0.1:8086")
     ap.add_argument("--app-ver", required=True)
+    ap.add_argument("--admin-password", help="with --pulls: tops the test account up through the admin panel")
+    ap.add_argument("--pulls", type=int, default=0, help="extra crank pulls to make and tally by rank")
     ap.add_argument("--stage", type=int, default=1001001, help="stage to start (default: first stage)")
     args = ap.parse_args()
     c = Client(args.server, args.app_ver)
@@ -136,6 +183,11 @@ def main():
             print(f"      answer keys: {' '.join(sorted(pull))[:300]}")
     else:
         print("SKIP  executeGacha: no Y-Money crank found in initGacha")
+
+    if args.pulls > 0 and paid and args.admin_password:
+        tally_pulls(c, args, int(paid[0][0]))
+    elif args.pulls > 0:
+        print("SKIP  pull tally: needs --admin-password and a Y-Money crank")
 
     c.step("login again (save still loads)", lambda: c.post("login.nhn"))
 

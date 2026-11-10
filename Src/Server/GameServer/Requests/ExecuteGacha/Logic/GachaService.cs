@@ -23,6 +23,7 @@ namespace Puniemu.Src.Server.GameServer.Requests.ExecuteGacha.Logic
             {RarityType.RarityZZZ, CapsuleColor.Rainbow },
             {RarityType.RarityUZ, CapsuleColor.Rainbow },
             {RarityType.RarityUZP, CapsuleColor.Rainbow },
+            {RarityType.RarityUZPP, CapsuleColor.Rainbow },
         };
         private static int SoulLevelFormula(int n)
         {

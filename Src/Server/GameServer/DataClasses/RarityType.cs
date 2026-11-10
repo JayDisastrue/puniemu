@@ -16,5 +16,6 @@
         RarityZZZ = 11,
         RarityUZ = 12,
         RarityUZP = 13,
+        RarityUZPP = 14,
     }
 }

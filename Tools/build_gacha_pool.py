@@ -11,11 +11,17 @@ Pools already in gacha_pool.txt are kept unless --replace is given.
     python3 Tools/build_gacha_pool.py --resources Resources --config my_pool.json
 
 Profiles (chance per pull):
-  modern   Rank totals published for two late-2026 event cranks:
-           Z 61.1, ZZ 23, ZZZ 8, UZ 3, UZ+ 1.2, items 3.7 (3.6 book, 0.1 G book).
-           Yo-kai below Z do not drop. This is the default.
+  all      Every rank can drop. This is the default. Not published anywhere; a made-up
+           curve that gets rarer with rank:
+           E 17, D 15, C 13, B 11, A 9.5, S 8, SS 6.5, SSS 5, Z 4.5, ZZ 3, ZZZ 1.8,
+           UZ 1, UZ+ 0.6, UZ++ 0.4, items 3.7 (3.6 book, 0.1 G book).
+  modern   Rank totals published for a late-2026 event crank:
+           Z 59.8, ZZ 23, ZZZ 8, UZ 2.7, UZ+ 2, UZ++ 0.8, items 3.7.
+           Yo-kai below Z do not drop.
   classic  A fan-site estimate for the original crank: B 55, A 30, S 10, items 5.
-  all      Every rank from E to UZ+ can drop, rarer ranks less often, items 3.7.
+
+Pity: after --pity-pulls pulls on a crank without a Yo-kai of --pity-rank or
+better, the next pull is guaranteed one. Default 50 pulls, rank UZ. 0 turns it off.
 
 A --config file is JSON in the same shape as a profile, e.g.
   {"ranks": {"9": 61.1, "13": 1.2},
@@ -24,7 +30,7 @@ A --config file is JSON in the same shape as a profile, e.g.
 Item tiers match items by exact name in ywp_mst_item or by id. "rank" is the
 rank (and capsule colour) the prize is shown with.
 
-Ranks: 1 E, 2 D, 3 C, 4 B, 5 A, 6 S, 7 SS, 8 SSS, 9 Z, 10 ZZ, 11 ZZZ, 12 UZ, 13 UZ+.
+Ranks: 1 E, 2 D, 3 C, 4 B, 5 A, 6 S, 7 SS, 8 SSS, 9 Z, 10 ZZ, 11 ZZZ, 12 UZ, 13 UZ+, 14 UZ++.
 Rebuild the server image afterwards: Resources are compiled in.
 """
 import argparse
@@ -35,18 +41,18 @@ import shutil
 import sys
 
 RANK_NAMES = {1: "E", 2: "D", 3: "C", 4: "B", 5: "A", 6: "S", 7: "SS", 8: "SSS", 9: "Z", 10: "ZZ", 11: "ZZZ",
-              12: "UZ", 13: "UZ+"}
+              12: "UZ", 13: "UZ+", 14: "UZ++"}
 BOOK = "ひっさつの秘伝書"       # Soultimate secret book
 G_BOOK = "ひっさつGの秘伝書"    # the rarer G book
 BOOK_TIERS = [{"key": "i1", "weight": 3.6, "rank": 4, "names": [BOOK]},
               {"key": "i2", "weight": 0.1, "rank": 7, "names": [G_BOOK]}]
 PROFILES = {
-    "modern": {"ranks": {9: 61.1, 10: 23.0, 11: 8.0, 12: 3.0, 13: 1.2}, "items": BOOK_TIERS},
+    "modern": {"ranks": {9: 59.8, 10: 23.0, 11: 8.0, 12: 2.7, 13: 2.0, 14: 0.8}, "items": BOOK_TIERS},
     "classic": {"ranks": {4: 55.0, 5: 30.0, 6: 10.0},
                 "items": [{"key": "i1", "weight": 4.9, "rank": 4, "names": [BOOK]},
                           {"key": "i2", "weight": 0.1, "rank": 7, "names": [G_BOOK]}]},
-    "all": {"ranks": {1: 24, 2: 20, 3: 16, 4: 12, 5: 9, 6: 6, 7: 4, 8: 2.5, 9: 1.5, 10: 0.7, 11: 0.3, 12: 0.2,
-                      13: 0.1},
+    "all": {"ranks": {1: 17, 2: 15, 3: 13, 4: 11, 5: 9.5, 6: 8, 7: 6.5, 8: 5, 9: 4.5, 10: 3, 11: 1.8, 12: 1.0,
+                      13: 0.6, 14: 0.4},
             "items": BOOK_TIERS},
 }
 
@@ -60,7 +66,9 @@ def table(resources, name):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--resources", default="Resources")
-    ap.add_argument("--profile", choices=sorted(PROFILES), default="modern")
+    ap.add_argument("--profile", choices=sorted(PROFILES), default="all")
+    ap.add_argument("--pity-pulls", type=int, default=50, help="pulls before a guaranteed high rank; 0 = no pity")
+    ap.add_argument("--pity-rank", type=int, default=12, help="lowest rank the pity pull gives (12 = UZ)")
     ap.add_argument("--config", help="JSON file with ranks and item tiers; overrides --profile")
     ap.add_argument("--replace", action="store_true", help="rebuild pools that already exist too")
     ap.add_argument("--dry-run", action="store_true", help="print the summary, write nothing")
@@ -131,6 +139,9 @@ def main():
         "itemRanks": {key: rank for key, _, rank, _ in tiers if rank},
         "rateUp": None,
     }
+    pity_ranks = [r for r in ranks if r >= args.pity_rank]
+    if args.pity_pulls > 0 and pity_ranks:
+        entry["pity"] = {"pulls": args.pity_pulls, "minRank": args.pity_rank}
 
     gacha_ids = [int(row[0]) for row in table(args.resources, "ywp_mst_gacha") if row and row[0].isdigit()]
     made, kept = 0, 0
@@ -150,6 +161,12 @@ def main():
         names = [name for i, name in items if i in ids][:3]
         shown = RANK_NAMES.get(rank, "B")
         print(f"  item {key:<4} {len(ids):>5} items   {100 * weight / total:6.2f}% of pulls  shown as rank {shown}  {names}")
+    if "pity" in entry:
+        chance = sum(odds[r] for r in pity_ranks) / total
+        print(f"pity: guaranteed {RANK_NAMES[args.pity_rank]} or better by pull {args.pity_pulls} "
+              f"({100 * chance:.2f}% per pull otherwise)")
+    else:
+        print("pity: off")
     unused = {RANK_NAMES[r]: len(v) for r, v in sorted(by_rank.items()) if r not in ranks}
     if unused:
         print(f"ranks in the data that this profile never drops: {unused}")

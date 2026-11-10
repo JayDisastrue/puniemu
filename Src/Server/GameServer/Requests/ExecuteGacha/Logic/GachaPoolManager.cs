@@ -138,7 +138,7 @@ namespace Puniemu.Src.Server.GameServer.Requests.ExecuteGacha.Logic
         //         is obtainable at all) does it fall back to yielding a plain item.
         public static async Task<GachaPrize>? CrankReward(int gachaId, TableParser<YwpUserYoukai> userYokaiTable, TableParser<YwpUserYoukaiSkill> userSkillTable,
             TableParser<YwpUserDictionary> dictionaryListTable, TableParser<YwpUserItem> userItemTable, TableParser<YwpUserYoukaiBonusEffect> userBonus, string gdkey,
-            GachaMaxedYokaiMode mode)
+            GachaMaxedYokaiMode mode, int forcedMinRank = 0)
         {
             EnsureLoaded();
             //Currently items still have a placeholder capsule
@@ -151,6 +151,12 @@ namespace Puniemu.Src.Server.GameServer.Requests.ExecuteGacha.Logic
             }
 
             HashSet<string>? excludedPools = null;
+            //Pity: only Yo-kai pools of the guaranteed rank or better stay in the roll
+            if (forcedMinRank > 0)
+            {
+                var blocked = gacha.Weights.Keys.Where(k => !int.TryParse(k, out var r) || r < forcedMinRank).ToHashSet();
+                if (blocked.Count < gacha.Weights.Count) excludedPools = blocked;
+            }
             long lastMaxedYokai = -1;
             RarityType lastMaxedRank = default;
 
@@ -301,6 +307,39 @@ namespace Puniemu.Src.Server.GameServer.Requests.ExecuteGacha.Logic
             }
 
             return yokais[yokais.Count - 1]; //floating-point safety net
+        }
+
+        //Pulls this account has made on each crank since its last Yo-kai of the pity rank or better
+        private const string PITY_TABLE = "puniemu_gacha_pity";
+
+        public static async Task<Dictionary<string, int>> LoadPity(string gdkey)
+        {
+            return await UserDataManager.Logic.UserDataManager.GetYwpUserAsync<Dictionary<string, int>>(gdkey, PITY_TABLE) ?? new();
+        }
+
+        public static async Task SavePity(string gdkey, Dictionary<string, int> pity)
+        {
+            await UserDataManager.Logic.UserDataManager.SetYwpUserAsync(gdkey, PITY_TABLE, pity);
+        }
+
+        //One pull with the crank's pity rule applied. Counts the pull, forces the guaranteed rank when the
+        //counter is due, and resets the counter whenever a Yo-kai of that rank or better comes out.
+        public static async Task<GachaPrize?> CrankRewardWithPity(int gachaId, TableParser<YwpUserYoukai> userYokaiTable, TableParser<YwpUserYoukaiSkill> userSkillTable,
+            TableParser<YwpUserDictionary> dictionaryListTable, TableParser<YwpUserItem> userItemTable, TableParser<YwpUserYoukaiBonusEffect> userBonus, string gdkey,
+            GachaMaxedYokaiMode mode, Dictionary<string, int> pity)
+        {
+            EnsureLoaded();
+            GachaPity? rule = Gachas.TryGetValue(gachaId, out var gacha) ? gacha.Pity : null;
+            if (rule == null || rule.Pulls <= 0 || rule.MinRank <= 0)
+                return await CrankReward(gachaId, userYokaiTable, userSkillTable, dictionaryListTable, userItemTable, userBonus, gdkey, mode)!;
+
+            var key = gachaId.ToString();
+            var count = pity.GetValueOrDefault(key) + 1;
+            var forced = count >= rule.Pulls ? rule.MinRank : 0;
+            var prize = await CrankReward(gachaId, userYokaiTable, userSkillTable, dictionaryListTable, userItemTable, userBonus, gdkey, mode, forced)!;
+            bool isYokai = prize != null && (prize.Youkai != null || prize.ConvertItemInfo != null);
+            pity[key] = isYokai && (int)prize!.RarityType >= rule.MinRank ? 0 : count;
+            return prize;
         }
 
         private static string? RollPool(Dictionary<string, double> weights, int gachaId, ISet<string>? excludedPools = null)
