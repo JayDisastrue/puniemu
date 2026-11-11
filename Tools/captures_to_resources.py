@@ -170,6 +170,27 @@ def shape(value):
     return "text"
 
 
+def layout(value, depth=4):
+    """The structure of a value with every actual value removed: field names, list lengths
+    and the column count of table text. Safe to share."""
+    if isinstance(value, dict):
+        if depth <= 0:
+            return "object"
+        return {k: layout(v, depth - 1) for k, v in value.items()}
+    if isinstance(value, list):
+        if not value:
+            return "list(0)"
+        if depth <= 0:
+            return f"list({len(value)})"
+        return [f"list({len(value)})", layout(value[0], depth - 1)]
+    if isinstance(value, str):
+        if "|" in value:
+            rows = value.split("*")
+            return f"table({len(rows)} rows x {len(rows[0].split('|'))} cols)"
+        return "text" if value else "text(empty)"
+    return shape(value)
+
+
 def shape_of_file(text):
     try:
         return shape(json.loads(text))
@@ -204,6 +225,8 @@ def main():
     ap.add_argument("--shapes", help="also write the field names and forms of every request and response to this "
                                      "file (no values, so nothing personal), for comparing with the emulator")
     ap.add_argument("--quiet", action="store_true", help="do not list every response")
+    ap.add_argument("--take", nargs="*", help="replace these fetched tables with the captured copy")
+    ap.add_argument("--show", nargs="*", help="print the field layout of these request types, e.g. login gameEnd")
     args = ap.parse_args()
 
     root = os.path.dirname(os.path.abspath(args.resources))
@@ -229,6 +252,7 @@ def main():
     files = sources
     requests_seen = {}
     skipped = {}
+    sent_empty = set()
     for name, path, body, request_body in sources:
         doc, how = read_response(path, body)
         if not isinstance(doc, dict):
@@ -238,22 +262,30 @@ def main():
                 print(f"  skipped {name}: {reason}")
             continue
         keys = [k for k, v in doc.items() if wanted(k, v)]
+        sent_empty.update(k for k, v in doc.items() if v in ("", [], {}) and (k.startswith("ywp_mst_") or k in SETTINGS))
         if not args.quiet:
             print(f"  {name}: {how}, {len(keys)} usable of {len(doc)} keys")
         for key in keys:
             variants.setdefault(key, {}).setdefault(as_text(doc[key]), (name, shape(doc[key])))
         entry = shapes.setdefault(name.split(" #")[0], {"count": 0, "request": {}, "response": {}})
         entry["count"] += 1
-        entry["response"].update({k: shape(v) for k, v in doc.items()})
+        for k, v in doc.items():
+            # keep the fullest example of each field
+            seen = entry["response"].get(k)
+            fresh = layout(v)
+            if seen is None or len(json.dumps(fresh)) > len(json.dumps(seen)):
+                entry["response"][k] = fresh
         request = read_request(request_body)
         if isinstance(request, dict):
-            entry["request"].update({k: shape(v) for k, v in request.items()})
+            for k, v in request.items():
+                entry["request"][k] = layout(v)
 
     # A table can arrive in different forms from different requests. The server reads each
     # file in one particular form, so keep the form of the file already there; among the
     # captured copies in that form take the fullest one.
     found = {}
     new, replaced, kept, same, wrong_form, rewrapped = [], [], [], [], [], []
+    take = set(args.take or [])
     for key in sorted(variants):
         options = variants[key]
         dest = os.path.join(args.resources, key + ".txt")
@@ -293,7 +325,10 @@ def main():
                 continue
             text = max(fitting, key=len)
             found[key] = (text, options[text][0])
-            if key in standins or args.overwrite:
+            if text == current:
+                same.append(key)
+                continue
+            if key in standins or args.overwrite or key in take:
                 replaced.append(key)
             else:
                 kept.append(key)
@@ -316,13 +351,23 @@ def main():
     for key, form, seen in wrong_form:
         tag = "stand-in" if key in standins else "fetched"
         print(f"  not replaced: {key} ({tag}) is stored as {form!r} but was only captured as {seen}")
+    for name in args.show or []:
+        match = next((n for n in shapes if n.lower() == name.lower()), None)
+        if not match:
+            print(f"--show {name}: no such request in the capture")
+            continue
+        print(f"--- {match} (captured {shapes[match]['count']} times)")
+        print(" request: " + json.dumps(shapes[match]["request"], ensure_ascii=False, sort_keys=True))
+        print(" response:")
+        for k in sorted(shapes[match]["response"]):
+            print(f"   {k}: {json.dumps(shapes[match]['response'][k], ensure_ascii=False)}")
     if args.shapes:
         with open(args.shapes, "w", encoding="utf-8") as f:
             json.dump(shapes, f, ensure_ascii=False, indent=1, sort_keys=True)
         print(f"wrote the field layout of {len(shapes)} request types to {args.shapes}")
     print(f"already identical: {len(same)}")
     if kept:
-        print(f"left alone (differs from your fetched copy; use --overwrite to take the captured one): {len(kept)} {kept[:12]}")
+        print(f"left alone (differs from your fetched copy; --take NAME replaces one, --overwrite all): {len(kept)} {kept}")
     # What the server needs that no capture has supplied yet
     needs_path = os.path.join(HERE, "puniemu_required_resources.txt")
     if os.path.exists(needs_path):
@@ -330,6 +375,10 @@ def main():
             needs = [line.strip() for line in f if line.strip()]
         open_items = [n for n in needs if (n.startswith("ywp_mst_") or n in SETTINGS) and n not in found
                       and (n in standins or not os.path.exists(os.path.join(args.resources, n + ".txt")))]
+        empty_now = sorted(n for n in open_items if n in sent_empty)
+        open_items = [n for n in open_items if n not in sent_empty]
+        if empty_now:
+            print(f"sent empty by the real server right now (nothing to capture): {' '.join(empty_now)}")
         print(f"still not captured ({len(open_items)}): {' '.join(open_items)}")
     if args.dry_run:
         print("dry run: nothing written")
