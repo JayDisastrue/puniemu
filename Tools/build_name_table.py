@@ -146,6 +146,10 @@ def main():
                     disagree += 1
                     conflicts.append((jp, entry["en"], wiki))
             continue
+        # "Pandora (Monster Strike)" is the wiki telling two pages apart, not part of the name.
+        # Kept when the Japanese name has brackets too, e.g. a (Light) variant.
+        if wiki and not re.search(r"[(（]", jp):
+            wiki = re.sub(r"\s*\([^)]*\)$", "", wiki) or wiki
         if wiki:
             changes[jp] = (wiki, "wiki")
             stats["wiki"] += 1
