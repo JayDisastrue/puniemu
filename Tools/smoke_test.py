@@ -10,6 +10,7 @@ For an HTTP 500, the reason is in the server log (docker compose logs puni).
 """
 import argparse
 import json
+import os
 import sys
 import urllib.error
 import urllib.parse
@@ -25,6 +26,8 @@ class Client:
         self.udkey = ""
         self.gdkey = ""
         self.failed = []
+        self.real = {}        # request name -> field layout of the real server's reply
+        self.differences = {}
 
     def get(self, path, **query):
         url = f"{self.server}{path}?{urllib.parse.urlencode(query)}"
@@ -40,7 +43,19 @@ class Client:
         req = urllib.request.Request(f"{self.server}/{endpoint}", data=encrypt_request(payload),
                                      headers=HEADERS, method="POST")
         with urllib.request.urlopen(req, timeout=120) as r:
-            return decrypt_response(r.read().decode())
+            res = decrypt_response(r.read().decode())
+        self.compare(endpoint.split(".")[0], res)
+        return res
+
+    def compare(self, name, res):
+        """Notes the fields the real server sends that this server does not, and the reverse."""
+        real = (self.real.get(name) or {}).get("response")
+        if not real or not isinstance(res, dict) or res.get("dialogMsg"):
+            return
+        mine = set(res)
+        missing = sorted(k for k in real if k not in mine)
+        extra = sorted(k for k in mine if k not in real)
+        self.differences[name] = (missing, extra)
 
     def step(self, name, fn):
         try:
@@ -115,12 +130,17 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--server", required=True, help="e.g. http://127.0.0.1:8086")
     ap.add_argument("--app-ver", required=True)
+    ap.add_argument("--compare", help="field layout file written by captures_to_resources.py --shapes; "
+                                      "reports where this server's replies differ from the real one's")
     ap.add_argument("--admin-password", help="with --pulls: tops the test account up through the admin panel")
     ap.add_argument("--pity-rank", type=int, default=7, help="rank the pull tally measures dry streaks against")
     ap.add_argument("--pulls", type=int, default=0, help="extra crank pulls to make and tally by rank")
     ap.add_argument("--stage", type=int, default=1001001, help="stage to start (default: first stage)")
     args = ap.parse_args()
     c = Client(args.server, args.app_ver)
+    if args.compare:
+        with open(args.compare, encoding="utf-8") as f:
+            c.real = json.load(f)
 
     res = c.step("l5id active (new device)", lambda: c.get("/l5id/api/v1/active/"))
     if not res:
@@ -195,6 +215,23 @@ def main():
 
     c.step("login again (save still loads)", lambda: c.post("login.nhn"))
 
+    if c.real:
+        tested = set(c.differences)
+        clean = sorted(n for n, (missing, extra) in c.differences.items() if not missing and not extra)
+        print(f"\ncompared with the real server: {len(tested)} request types; identical field names in {len(clean)}")
+        for name, (missing, extra) in sorted(c.differences.items()):
+            if missing:
+                print(f"  {name}: real server also sends {' '.join(missing)}")
+            if extra:
+                print(f"  {name}: only this server sends {' '.join(extra)}")
+        handled = {line.split('"/')[1].split(".nhn")[0] for line in open(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Src", "Program.cs"), encoding="utf-8")
+            if 'app.MapPost("/' in line and ".nhn" in line}
+        lower = {h.lower() for h in handled}
+        unhandled = sorted(n for n in c.real if n.lower() not in lower)
+        print(f"captured request types the server has no handler for ({len(unhandled)}): {' '.join(unhandled)}")
+        untested = sorted(n for n in c.real if n.lower() in lower and n not in tested)
+        print(f"handled but not exercised by this test ({len(untested)}): {' '.join(untested)}")
     print(f"\n{len(c.failed)} step(s) failed" + (": " + ", ".join(c.failed) if c.failed else ""))
     print("The test account stays on the server; it shows in the admin panel as SmokeTest.")
     return 1 if c.failed else 0

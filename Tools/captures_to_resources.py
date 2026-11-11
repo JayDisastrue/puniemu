@@ -98,7 +98,7 @@ def flow_responses(path):
                 except (OSError, zlib.error):
                     pass
         counts[name] = counts.get(name, 0) + 1
-        yield f"{name[:-4]} #{counts[name]}", body
+        yield f"{name[:-4]} #{counts[name]}", body, request.get("content")
 
 
 def read_response(path, raw=None):
@@ -128,6 +128,51 @@ def read_response(path, raw=None):
         return None, f"could not decrypt ({type(e).__name__})"
 
 
+def read_request(raw):
+    """The JSON the game sent, or None. Requests are encrypted like responses but not compressed."""
+    if not raw:
+        return None
+    try:
+        text = raw.decode("utf-8").strip()
+        if text[:1] == "{":
+            return json.loads(text)
+        import base64
+        sys.path.insert(0, HERE)
+        from fetch_puni_resources import KEY
+        from cryptography.hazmat.primitives import padding
+        from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+        text = text.replace("-", "+").replace("_", "/")
+        text += "=" * (-len(text) % 4)
+        dec = Cipher(algorithms.AES(KEY), modes.ECB()).decryptor()
+        unpadder = padding.PKCS7(128).unpadder()
+        plain = unpadder.update(dec.update(base64.b64decode(text)) + dec.finalize()) + unpadder.finalize()
+        return json.loads(plain[20:].decode("utf-8"))
+    except Exception:  # not a game request
+        return None
+
+
+def shape(value):
+    """A one-word description of a value's form. Never contains the value itself."""
+    if isinstance(value, dict):
+        return "table" if "tableData" in value else "data" if "data" in value else "object"
+    if isinstance(value, list):
+        return "list"
+    if isinstance(value, bool):
+        return "bool"
+    if isinstance(value, (int, float)):
+        return "number"
+    if value is None:
+        return "null"
+    return "text"
+
+
+def shape_of_file(text):
+    try:
+        return shape(json.loads(text))
+    except ValueError:
+        return "text"
+
+
 def wanted(key, value):
     if value in (None, "", [], {}):
         return False
@@ -152,6 +197,9 @@ def main():
     ap.add_argument("--resources", default="Resources")
     ap.add_argument("--overwrite", action="store_true", help="also replace tables that are not stand-ins")
     ap.add_argument("--dry-run", action="store_true", help="report what would change, write nothing")
+    ap.add_argument("--shapes", help="also write the field names and forms of every request and response to this "
+                                     "file (no values, so nothing personal), for comparing with the emulator")
+    ap.add_argument("--quiet", action="store_true", help="do not list every response")
     args = ap.parse_args()
 
     root = os.path.dirname(os.path.abspath(args.resources))
@@ -161,46 +209,71 @@ def main():
         with open(list_path, encoding="utf-8") as f:
             standins = {line.strip()[:-4] for line in f if line.strip().endswith(".txt")}
 
-    found = {}       # name -> (text, source file)
-    seen_twice = []
+    variants = {}    # name -> {text: (source, form)}
+    shapes = {}
     if os.path.isdir(args.captures):
-        sources = [(name, os.path.join(args.captures, name), None) for name in sorted(os.listdir(args.captures))
+        sources = [(name, os.path.join(args.captures, name), None, None) for name in sorted(os.listdir(args.captures))
                    if os.path.isfile(os.path.join(args.captures, name))]
     else:
         try:
-            sources = [(label, None, body) for label, body in flow_responses(args.captures)]
+            sources = [(label, None, body, request) for label, body, request in flow_responses(args.captures)]
         except (ValueError, IndexError):
             # Not a mitmproxy file: treat it as a single saved response
-            sources = [(os.path.basename(args.captures), args.captures, None)]
+            sources = [(os.path.basename(args.captures), args.captures, None, None)]
         else:
             print(f"mitmproxy file: {len(sources)} game responses")
     files = sources
     requests_seen = {}
-    for name, path, body in sources:
+    skipped = {}
+    for name, path, body, request_body in sources:
         doc, how = read_response(path, body)
         if not isinstance(doc, dict):
-            print(f"  skipped {name}: {how if doc is None else 'not a response object'}")
+            reason = how if doc is None else "not a response object"
+            skipped[name.split(" #")[0]] = reason
+            if not args.quiet:
+                print(f"  skipped {name}: {reason}")
             continue
         keys = [k for k, v in doc.items() if wanted(k, v)]
-        print(f"  {name}: {how}, {len(keys)} usable of {len(doc)} keys")
+        if not args.quiet:
+            print(f"  {name}: {how}, {len(keys)} usable of {len(doc)} keys")
         for key in keys:
-            text = as_text(doc[key])
-            if key in found and found[key][0] != text:
-                seen_twice.append((key, found[key][1], name))
-            found[key] = (text, name)
+            variants.setdefault(key, {}).setdefault(as_text(doc[key]), (name, shape(doc[key])))
+        entry = shapes.setdefault(name.split(" #")[0], {"count": 0, "request": {}, "response": {}})
+        entry["count"] += 1
+        entry["response"].update({k: shape(v) for k, v in doc.items()})
+        request = read_request(request_body)
+        if isinstance(request, dict):
+            entry["request"].update({k: shape(v) for k, v in request.items()})
 
-    new, replaced, kept, same = [], [], [], []
-    for key in sorted(found):
-        text = found[key][0]
+    # A table can arrive in different forms from different requests. The server reads each
+    # file in one particular form, so keep the form of the file already there; among the
+    # captured copies in that form take the fullest one.
+    found = {}
+    new, replaced, kept, same, wrong_form = [], [], [], [], []
+    for key in sorted(variants):
+        options = variants[key]
         dest = os.path.join(args.resources, key + ".txt")
-        if not os.path.exists(dest):
-            new.append(key)
-        else:
+        current = None
+        if os.path.exists(dest):
             with open(dest, encoding="utf-8") as f:
                 current = f.read()
-            if current == text:
+        if current is None:
+            text = max(options, key=len)
+            found[key] = (text, options[text][0])
+            new.append(key)
+        else:
+            if current in options:
+                found[key] = (current, options[current][0])
                 same.append(key)
                 continue
+            form = shape_of_file(current)
+            fitting = [t for t, (_, f) in options.items() if f == form]
+            if not fitting:
+                found[key] = (current, "")
+                wrong_form.append((key, form, sorted({f for _, f in options.values()})))
+                continue
+            text = max(fitting, key=len)
+            found[key] = (text, options[text][0])
             if key in standins or args.overwrite:
                 replaced.append(key)
             else:
@@ -208,16 +281,27 @@ def main():
                 continue
         if not args.dry_run:
             with open(dest, "w", encoding="utf-8") as f:
-                f.write(text)
+                f.write(found[key][0])
 
     print(f"\nresponses read: {len(files)}; tables and settings found: {len(found)}")
-    print(f"new files: {len(new)} {new[:12]}")
-    print(f"replaced ({'stand-ins and others' if args.overwrite else 'Wibble Wobble stand-ins'}): {len(replaced)} {replaced[:12]}")
+    if skipped:
+        print(f"responses that are not game data (web pages and the like): {sorted(skipped)}")
+    print(f"new files: {len(new)} {new}")
+    print(f"replaced ({'stand-ins and others' if args.overwrite else 'Wibble Wobble stand-ins'}): {len(replaced)} {replaced}")
+    for key in new + replaced:
+        choices = len(variants[key])
+        if choices > 1:
+            print(f"  {key}: {choices} different copies captured; took the fullest, from {found[key][1]}")
+    for key, form, seen in wrong_form:
+        tag = "stand-in" if key in standins else "fetched"
+        print(f"  not replaced: {key} ({tag}) is stored as {form!r} but was only captured as {seen}")
+    if args.shapes:
+        with open(args.shapes, "w", encoding="utf-8") as f:
+            json.dump(shapes, f, ensure_ascii=False, indent=1, sort_keys=True)
+        print(f"wrote the field layout of {len(shapes)} request types to {args.shapes}")
     print(f"already identical: {len(same)}")
     if kept:
         print(f"left alone (differs from your fetched copy; use --overwrite to take the captured one): {len(kept)} {kept[:12]}")
-    for key, first, second in seen_twice[:10]:
-        print(f"  note: {key} differs between {first} and {second}; used {second}")
     # What the server needs that no capture has supplied yet
     needs_path = os.path.join(HERE, "puniemu_required_resources.txt")
     if os.path.exists(needs_path):
