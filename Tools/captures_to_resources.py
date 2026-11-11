@@ -267,7 +267,7 @@ def main():
             print(f"  {name}: {how}, {len(keys)} usable of {len(doc)} keys")
         for key in keys:
             variants.setdefault(key, {}).setdefault(as_text(doc[key]), (name, shape(doc[key])))
-        entry = shapes.setdefault(name.split(" #")[0], {"count": 0, "request": {}, "response": {}})
+        entry = shapes.setdefault(os.path.splitext(name.split(" #")[0])[0], {"count": 0, "request": {}, "response": {}})
         entry["count"] += 1
         for k, v in doc.items():
             # keep the fullest example of each field
@@ -292,7 +292,7 @@ def main():
         current = None
         if os.path.exists(dest):
             with open(dest, encoding="utf-8") as f:
-                current = f.read()
+                current = f.read().strip()
         if current is None:
             text = max(options, key=len)
             found[key] = (text, options[text][0])
