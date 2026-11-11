@@ -51,7 +51,7 @@ namespace Puniemu.Src.Server.GameServer.Requests.Init.DataClasses
         public string ImgServer { get; set; }
 
         // 2 here
-        [JsonProperty("dispNoticeFlag")]
+        [JsonProperty("dispNoticeFlg")]
         public int DispNoticeFlag { get; set; }
 
 

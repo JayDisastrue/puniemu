@@ -20,20 +20,9 @@ namespace Puniemu.Src.Server.GameServer.Requests.UserInfoRefresh.DataClasses
         }
         public Dictionary<string, object> ToDictionary()
         {
-            var dict = new Dictionary<string, object>
-            {
-                    { nameof(ShopSaleList), ShopSaleList! },
-                    { nameof(ServerDate), ServerDate },
-                    { nameof(YwpToken), YwpToken },
-                    { nameof(YMoneyShopSaleList), YMoneyShopSaleList },
-                    { nameof(MstVersionMaster), MstVersionMaster },
-                    { nameof(ResultCode), ResultCode },
-                    { nameof(NextScreenType), NextScreenType },
-                    { nameof(HitodamaShopSaleList), HitodamaShopSaleList! },
-                    { nameof(UserData), UserData },
-                    { nameof(ResultType), ResultType }
-                
-            };
+            //Serialize through the JSON names so the keys match what the game expects
+            //(resultCode, serverDt, ...) instead of the C# property names.
+            var dict = Newtonsoft.Json.Linq.JObject.FromObject(this).ToObject<Dictionary<string, object>>()!;
 
             return dict;
         }

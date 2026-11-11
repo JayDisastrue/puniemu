@@ -101,6 +101,10 @@ def flow_responses(path):
         yield f"{name[:-4]} #{counts[name]}", body, request.get("content")
 
 
+# Files the server passes to the game untouched, so they must be stored exactly as received
+SENT_AS_IS = {"ywp_mst_version_master"}
+
+
 def read_response(path, raw=None):
     """Returns (document, how) for one saved response, or (None, reason)."""
     if raw is None:
@@ -249,7 +253,7 @@ def main():
     # file in one particular form, so keep the form of the file already there; among the
     # captured copies in that form take the fullest one.
     found = {}
-    new, replaced, kept, same, wrong_form = [], [], [], [], []
+    new, replaced, kept, same, wrong_form, rewrapped = [], [], [], [], [], []
     for key in sorted(variants):
         options = variants[key]
         dest = os.path.join(args.resources, key + ".txt")
@@ -268,6 +272,21 @@ def main():
                 continue
             form = shape_of_file(current)
             fitting = [t for t, (_, f) in options.items() if f == form]
+            if not fitting:
+                # Same content, different wrapping: the server keeps some tables inside
+                # {"data": [...]} or {"tableData": "..."} where the game sends them bare.
+                wrapped = {}
+                for t, (source, f) in options.items():
+                    if form == "data" and f == "list":
+                        wrapped['{"data":' + t + "}"] = (source, form)
+                    elif form == "table" and f == "text" and key not in SENT_AS_IS:
+                        wrapped[json.dumps({"tableData": t}, ensure_ascii=False, separators=(",", ":"))] = (source, form)
+                    elif key in SENT_AS_IS and f == "text":
+                        wrapped[t] = (source, f)
+                if wrapped:
+                    options = wrapped
+                    fitting = list(wrapped)
+                    rewrapped.append(key)
             if not fitting:
                 found[key] = (current, "")
                 wrong_form.append((key, form, sorted({f for _, f in options.values()})))
@@ -288,6 +307,8 @@ def main():
         print(f"responses that are not game data (web pages and the like): {sorted(skipped)}")
     print(f"new files: {len(new)} {new}")
     print(f"replaced ({'stand-ins and others' if args.overwrite else 'Wibble Wobble stand-ins'}): {len(replaced)} {replaced}")
+    if rewrapped:
+        print(f"re-wrapped into the form the server stores: {sorted(set(rewrapped) & set(new + replaced + kept))}")
     for key in new + replaced:
         choices = len(variants[key])
         if choices > 1:
