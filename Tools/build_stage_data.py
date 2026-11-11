@@ -115,20 +115,39 @@ def main():
     order = [(label, rule) for _, _, label, rule in scored]
     print("order of preference: " + " > ".join(label for label, _ in order))
 
-    def enemies_of(stage):
+    def by_score(stage):
         for label, rule in order:
             found = rule(stage, by_id[stage])
             if found:
                 return found, label
         return [], ""
 
+    def by_pattern(stage):
+        # An id pattern is trusted for a stage when its enemies include the one the
+        # stage's own enemy set names; otherwise fall back to that set.
+        anchor = named_set(stage, by_id[stage])
+        for label, rule in rules[:2]:
+            found = rule(stage, by_id[stage])
+            if found and all(e in found for e in anchor):
+                return found, label
+        return (anchor, rules[2][0]) if anchor else by_score(stage)
+
+    def score(method):
+        return sum(1 for s, want in played.items() if method(s)[0] == want)
+
+    print(f"picking rules by overall score: right for {score(by_score)} of {len(played)} played stages")
+    print(f"picking the id pattern that fits each stage: right for {score(by_pattern)} of {len(played)} played stages")
+    enemies_of = by_pattern if score(by_pattern) >= score(by_score) else by_score
+    print("using: " + ("the id pattern that fits each stage" if enemies_of is by_pattern else "overall score"))
+
     wrong = [(s, want, enemies_of(s)[0]) for s, want in sorted(played.items()) if enemies_of(s)[0] != want]
-    print(f"combined: right for {len(played) - len(wrong)} of {len(played)} played stages")
+    print(f"result: right for {len(played) - len(wrong)} of {len(played)} played stages")
     for s, want, got in wrong:
         missing = [e for e in want if e not in got]
         where = {e: (set_of_enemy.get(str(e)) or ["in no set"])[:3] for e in missing}
         print(f"   {s}: real {want}, rules give {got}; missing ones sit in sets {where}; "
-              f"in enemy table: {[str(e) in known for e in missing]}; stage names set {by_id[s][12]}")
+              f"in enemy table: {[str(e) in known for e in missing]}; stage names set {by_id[s][12]}; "
+              f"each rule alone: {[rule(s, by_id[s]) for _, rule in rules]}")
 
     added, refreshed, no_enemies = [], [], []
     used = collections.Counter()
