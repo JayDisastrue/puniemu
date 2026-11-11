@@ -200,6 +200,12 @@ namespace Puniemu.Src.Server.GameServer.Requests.ExecuteGacha.Logic
             resdict["ywp_user_youkai_bonus_effect"] = userBonus.ToString();
             resdict["ywp_user_dictionary"] = dictionaryListTable.ToString();
             resdict["ywp_user_youkai_skill"] = userSkillTable.ToString();
+            //Same tables under the "_diff" names the current game reads (see GameEndHandler)
+            resdict["ywp_user_youkai_diff"] = resdict["ywp_user_youkai"];
+            resdict["ywp_user_youkai_skill_diff"] = resdict["ywp_user_youkai_skill"];
+            resdict["ywp_user_youkai_bonus_effect_diff"] = resdict["ywp_user_youkai_bonus_effect"];
+            resdict["ywp_user_dictionary_diff"] = resdict["ywp_user_dictionary"];
+            resdict["gachaLotRuleList"] = new List<object>();
             List<string> list = new List<string>();
             list.Add("gachaLotRule");
             //add to response

@@ -543,6 +543,12 @@ namespace Puniemu.Src.Server.GameServer.Requests.GameEnd.Logic
             resdict["ywp_user_youkai_strong_skill_diff"] = ""; // TODO
             resdict["ywp_user_youkai"] = userYoukaiTable.ToString();
             resdict["ywp_user_dictionary"] = dictionaryYoukaiTable.ToString();
+            //The current game reads these under "_diff" names (rows to merge by Yo-kai id).
+            //Sending every row is a valid diff; the plain names stay for older clients.
+            resdict["ywp_user_youkai_diff"] = resdict["ywp_user_youkai"];
+            resdict["ywp_user_youkai_skill_diff"] = resdict["ywp_user_youkai_skill"];
+            resdict["ywp_user_youkai_bonus_effect_diff"] = resdict["ywp_user_youkai_bonus_effect"];
+            resdict["ywp_user_dictionary_diff"] = resdict["ywp_user_dictionary"];
             var totalSoult = 0;
             foreach (var kai in deserialized.UserYoukaiResultList)
             {
