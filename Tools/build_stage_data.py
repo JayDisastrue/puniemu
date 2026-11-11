@@ -63,11 +63,22 @@ def main():
             sets[row[0]].append(int(row[1]))
             set_of_enemy[row[1]].append(row[0])
 
+    def run_from_first(ids):
+        # The line-up is numbered 1, 2, 3 without gaps. An id after a gap (30001024 next to
+        # 30001021 and 30001022) is a special the server swaps in, not a regular enemy.
+        ids = sorted(ids)
+        keep = ids[:1]
+        for e in ids[1:]:
+            if e != keep[-1] + 1:
+                break
+            keep.append(e)
+        return keep
+
     def stage_plus_two(stage, row):       # 1001003 -> 100100301, 100100302
-        return sorted(by_prefix.get((stage, len(stage) + 2), []))
+        return run_from_first(by_prefix.get((stage, len(stage) + 2), []))
 
     def short_stage_plus_one(stage, row):  # 30001002 -> 30001021, 30001022
-        return sorted(by_prefix.get((stage[:-3] + stage[-2:], len(stage)), []))
+        return run_from_first(by_prefix.get((stage[:-3] + stage[-2:], len(stage)), []))
 
     def named_set(stage, row):
         return [e for e in sets.get(row[12], []) if str(e) in known]
