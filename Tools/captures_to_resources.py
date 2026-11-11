@@ -138,6 +138,14 @@ def main():
         print(f"left alone (differs from your fetched copy; use --overwrite to take the captured one): {len(kept)} {kept[:12]}")
     for key, first, second in seen_twice[:10]:
         print(f"  note: {key} differs between {first} and {second}; used {second}")
+    # What the server needs that no capture has supplied yet
+    needs_path = os.path.join(HERE, "puniemu_required_resources.txt")
+    if os.path.exists(needs_path):
+        with open(needs_path, encoding="utf-8") as f:
+            needs = [line.strip() for line in f if line.strip()]
+        open_items = [n for n in needs if (n.startswith("ywp_mst_") or n in SETTINGS) and n not in found
+                      and (n in standins or not os.path.exists(os.path.join(args.resources, n + ".txt")))]
+        print(f"still not captured ({len(open_items)}): {' '.join(open_items)}")
     if args.dry_run:
         print("dry run: nothing written")
         return 0
