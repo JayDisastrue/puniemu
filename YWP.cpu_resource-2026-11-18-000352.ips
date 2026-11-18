@@ -1,0 +1,307 @@
+{"app_name":"YWP","timestamp":"2026-11-18 00:03:52.00 +0100","app_version":"4.177.0","slice_uuid":"FC1344C9-6526-399F-82AF-E6D204909514","build_version":"4.177.0.0","bundleID":"com.Level5.YWP.QBM7M9XQ94","duration_ms":"105525","share_with_app_devs":0,"is_first_party":0,"bug_type":"202","os_version":"iPhone OS 26.6.2 (23G90)","roots_installed":0,"name":"YWP","incident_id":"25FAA769-F4D3-4AA5-B433-EE8FACD61555"}
+Date/Time:        2026-11-18 00:02:06.021 +0100
+End time:         2026-11-18 00:03:51.546 +0100
+OS Version:       iPhone OS 26.6.2 (Build 23G90)
+Architecture:     arm64e
+Report Version:   72
+Incident Identifier: 25FAA769-F4D3-4AA5-B433-EE8FACD61555
+
+Data Source:      Microstackshots
+Shared Cache:     CA21AD80-E2AF-3CF3-AA57-0DB11DF436DD slid base address 0x19c4d0000, slide 0x1c4d0000
+
+Command:          YWP
+Path:             /private/var/containers/Bundle/Application/0D92E4BA-DF53-43B1-BDF1-284D487C69C1/App.app/YWP
+Identifier:       com.Level5.YWP.QBM7M9XQ94
+Version:          4.177.0 (4.177.0.0)
+Is First Party:   No
+Beta Identifier:  A1AD2130-224B-496F-A292-20D25C5D5523
+Resource Coalition: 1904
+Architecture:     arm64
+PID:              19393
+
+Event:            cpu usage
+Action taken:     none
+CPU:              90 seconds cpu time over 106 seconds (85% cpu average), exceeding limit of 50% cpu over 180 seconds
+CPU limit:        90s
+Limit duration:   180s
+CPU used:         90s
+CPU duration:     106s
+Duration:         105.52s
+Duration Sampled: 102.90s (event starts 1.50s before samples, event ends 1.13s after samples)
+Steps:            103 (10 gigacycles/step, 14 samples lost)
+
+Hardware model:   iPhone14,5
+Active cpus:      6
+Memory size:      3.58 GB
+HW page size:     16384
+VM page size:     16384
+
+Models:           UNKNOWN
+
+OS Cryptex File Extents: 4019
+
+Heaviest stack for the target process:
+  101  ??? (libsystem_pthread.dylib + 2252) [0x1ff3628cc]
+  101  ??? (libsystem_pthread.dylib + 17464) [0x1ff366438]
+  96   ??? (YWP + 21756344) [0x10164f9b8]
+  96   ??? (YWP + 21750184) [0x10164e1a8]
+  42   ??? (YWP + 18847616) [0x101389780]
+  32   ??? (Foundation + 72872) [0x19cc59ca8]
+  9    ??? (libsystem_platform.dylib + 5820) [0x2c08fe6bc]
+
+
+Powerstats for:   YWP [19393]
+UUID:             FC1344C9-6526-399F-82AF-E6D204909514
+Path:             /private/var/containers/Bundle/Application/0D92E4BA-DF53-43B1-BDF1-284D487C69C1/App.app/YWP
+Identifier:       com.Level5.YWP.QBM7M9XQ94
+Version:          4.177.0 (4.177.0.0)
+Is First Party:   No
+Beta Identifier:  A1AD2130-224B-496F-A292-20D25C5D5523
+Resource Coalition: 103 samples 1904
+Architecture:     arm64
+Footprint:        267.09 MB
+Pageins:          17 pages
+Start time:       2026-11-18 00:02:07.516 +0100
+End time:         2026-11-18 00:03:50.420 +0100
+Num samples:      103 (100%)
+Energy:           63.26 mWh
+Num threads:      8
+Primary state:    92 samples Frontmost App, Non-Suppressed, User mode, Effective Thread QoS Default, Requested Thread QoS Default, Override Thread QoS Unspecified, e-core
+User Activity:    0 samples Idle, 103 samples Active
+Power Source:     103 samples on Battery, 0 samples on AC
+  101  ??? (libsystem_pthread.dylib + 2252) [0x1ff3628cc]
+    101  ??? (libsystem_pthread.dylib + 17464) [0x1ff366438]
+      96   ??? (YWP + 21756344) [0x10164f9b8]
+        96   ??? (YWP + 21750184) [0x10164e1a8]
+          42   ??? (YWP + 18847616) [0x101389780]
+            32   ??? (Foundation + 72872) [0x19cc59ca8]
+              9    ??? (libsystem_platform.dylib + 5820) [0x2c08fe6bc]
+                1    <p-core>
+              8    ??? (CoreFoundation + 860680) [0x19fa89208]
+                3    ??? (libsystem_kernel.dylib + 2792) [0x24f00cae8]
+                  2    <Kernel mode>
+                2    ??? (libsystem_platform.dylib + 5980) [0x2c08fe75c]
+                  1    <p-core>
+                1    ??? (libsystem_platform.dylib + 5924) [0x2c08fe724]
+                  1    <p-core>
+                1    ??? (libsystem_platform.dylib + 5916) [0x2c08fe71c]
+                  1    <p-core>
+                1    ??? (libsystem_kernel.dylib + 2784) [0x24f00cae0]
+                  1    <p-core>
+              3    ??? (libsystem_platform.dylib + 5760) [0x2c08fe680]
+              3    ??? (CoreFoundation + 860700) [0x19fa8921c]
+                3    ??? (libsystem_kernel.dylib + 22952) [0x24f0119a8]
+                  3    <Kernel mode>
+              3    ??? (libsystem_platform.dylib + 5832) [0x2c08fe6c8]
+                1    <p-core>
+              2    ??? (libsystem_platform.dylib + 5804) [0x2c08fe6ac]
+                2    <p-core>
+              2    ??? (libsystem_platform.dylib + 5752) [0x2c08fe678]
+                1    <p-core>
+              1    ??? (libsystem_platform.dylib + 5864) [0x2c08fe6e8]
+                1    <p-core>
+              1    ??? (libsystem_platform.dylib + 5764) [0x2c08fe684]
+            3    ??? (Foundation + 72868) [0x19cc59ca4]
+              2    ??? (CoreFoundation + 191952) [0x19f9e5dd0]
+                1    ??? (CoreFoundation + 36232) [0x19f9bfd88]
+                1    ??? (CoreFoundation + 36244) [0x19f9bfd94]
+                  1    ??? (CoreFoundation + 38308) [0x19f9c05a4]
+              1    ??? (CoreFoundation + 191932) [0x19f9e5dbc]
+            2    ??? (Foundation + 72884) [0x19cc59cb4]
+              1    ??? (libobjc.A.dylib + 21904) [0x19c56d590]
+              1    ??? (CoreFoundation + 32324) [0x19f9bee44]
+                1    ??? (libobjc.A.dylib + 22136) [0x19c56d678]
+            2    ??? (Foundation + 72860) [0x19cc59c9c]
+              1    ??? (libobjc.A.dylib + 19660) [0x19c56cccc]
+                1    <p-core>
+              1    ??? (CoreFoundation + 30588) [0x19f9be77c]
+                1    ??? (libobjc.A.dylib + 19800) [0x19c56cd58]
+            1    ??? (CoreFoundation + 860648) [0x19fa891e8]
+            1    ??? (CoreFoundation + 32292) [0x19f9bee24]
+              1    <p-core>
+            1    ??? [0x1a309e480]
+              1    <p-core>
+          32   ??? (YWP + 18847644) [0x10138979c]
+            28   ??? (Foundation + 43992) [0x19cc52bd8]
+              24   ??? (Foundation + 44192) [0x19cc52ca0]
+                14   ??? (CoreFoundation + 191816) [0x19f9e5d48]
+                  7    ??? (CoreFoundation + 190348) [0x19f9e578c]
+                    2    ??? (CoreFoundation + 228856) [0x19f9eedf8]
+                    2    ??? (CoreFoundation + 228104) [0x19f9eeb08]
+                      2    ??? (CoreFoundation + 228924) [0x19f9eee3c]
+                        2    <p-core>
+                    1    ??? (libobjc.A.dylib + 35324) [0x19c5709fc]
+                      1    <p-core>
+                    1    ??? (libobjc.A.dylib + 35288) [0x19c5709d8]
+                    1    ??? (libobjc.A.dylib + 35268) [0x19c5709c4]
+                  6    ??? (CoreFoundation + 190364) [0x19f9e579c]
+                    6    ??? (CoreFoundation + 117096) [0x19f9d3968]
+                      2    ??? (CoreFoundation + 115684) [0x19f9d33e4]
+                        1    ??? (CoreFoundation + 107916) [0x19f9d158c]
+                          1    <p-core>
+                        1    ??? (CoreFoundation + 107864) [0x19f9d1558]
+                      1    ??? (CoreFoundation + 115752) [0x19f9d3428]
+                      1    ??? (CoreFoundation + 115664) [0x19f9d33d0]
+                        1    <p-core>
+                      1    ??? (CoreFoundation + 115640) [0x19f9d33b8]
+                      1    ??? (CoreFoundation + 84000) [0x19f9cb820]
+                  1    ??? (libobjc.A.dylib + 41472) [0x19c572200]
+                    1    <p-core>
+                2    ??? (CoreFoundation + 191844) [0x19f9e5d64]
+                  2    ??? (CoreFoundation + 189008) [0x19f9e5250]
+                2    ??? (CoreFoundation + 191856) [0x19f9e5d70]
+                  1    ??? (libsystem_pthread.dylib + 4044) [0x1ff362fcc]
+                  1    ??? (libsystem_pthread.dylib + 3888) [0x1ff362f30]
+                    1    <p-core>
+                1    ??? (libsystem_pthread.dylib + 2788) [0x1ff362ae4]
+                  1    <p-core>
+                1    ??? (libsystem_pthread.dylib + 2544) [0x1ff3629f0]
+                  1    <p-core>
+                1    ??? (libsystem_pthread.dylib + 2364) [0x1ff36293c]
+                  1    <p-core>
+                1    ??? (CoreFoundation + 1806928) [0x19fb70250]
+                  1    <p-core>
+                1    ??? (CoreFoundation + 191864) [0x19f9e5d78]
+                  1    ??? (CoreFoundation + 29168) [0x19f9be1f0]
+                1    ??? (CoreFoundation + 191832) [0x19f9e5d58]
+                  1    ??? (libsystem_pthread.dylib + 3168) [0x1ff362c60]
+                    1    <p-core>
+              2    ??? (libobjc.A.dylib + 13496) [0x19c56b4b8]
+                1    <Kernel mode>
+              1    ??? (CoreFoundation + 191748) [0x19f9e5d04]
+              1    ??? (Foundation + 44140) [0x19cc52c6c]
+                1    ??? (CoreFoundation + 194800) [0x19f9e68f0]
+                  1    ??? (CoreFoundation + 191692) [0x19f9e5ccc]
+                    1    ??? (CoreFoundation + 36232) [0x19f9bfd88]
+            1    ??? (libobjc.A.dylib + 13352) [0x19c56b428]
+            1    ??? (libobjc.A.dylib + 5316) [0x19c5694c4]
+              1    <p-core>
+            1    ??? (libobjc.A.dylib + 5176) [0x19c569438]
+            1    ??? [0x1a30a16b0]
+              1    <p-core>
+          14   ??? (YWP + 18847632) [0x101389790]
+            8    ??? (CoreFoundation + 415924) [0x19fa1c8b4]
+              8    ??? (libsystem_c.dylib + 17436) [0x1ab53841c]
+                5    ??? [0x1b048dc50]
+                  5    <p-core>
+                1    ??? (libsystem_kernel.dylib + 4200) [0x24f00d068]
+                  1    <p-core>
+                1    ??? (libsystem_kernel.dylib + 1960) [0x24f00c7a8]
+                1    ??? (libsystem_c.dylib + 17668) [0x1ab538504]
+                  1    ??? (libsystem_kernel.dylib + 3776) [0x24f00cec0]
+                    1    <p-core>
+            1    ??? (libobjc.A.dylib + 17420) [0x19c56c40c]
+              1    <p-core>
+            1    ??? (libobjc.A.dylib + 16920) [0x19c56c218]
+              1    <p-core>
+            1    ??? (libobjc.A.dylib + 13368) [0x19c56b438]
+              1    <p-core>
+            1    ??? (libobjc.A.dylib + 13312) [0x19c56b400]
+              1    <p-core>
+            1    ??? [0x1a30b3230]
+              1    <p-core>
+            1    ??? (CoreFoundation + 415972) [0x19fa1c8e4]
+              1    ??? (CoreFoundation + 215812) [0x19f9ebb04]
+          4    ??? (libobjc.A.dylib + 13312) [0x19c56b400]
+            2    <p-core>
+          1    ??? (libobjc.A.dylib + 13380) [0x19c56b444]
+          1    ??? (YWP + 40114020) [0x1027d1764]
+          1    ??? (YWP + 18847644) [0x10138979c]
+          1    ??? (YWP + 18847584) [0x101389760]
+            1    ??? (CFNetwork + 75928) [0x1b4e76898]
+              1    ??? (Network + 14864) [0x19df76a10]
+                1    ??? (Network + 16324) [0x19df76fc4]
+                  1    ??? (Network + 18432) [0x19df77800]
+                    1    ??? (Network + 26616) [0x19df797f8]
+                      1    ??? (Network + 24204) [0x19df78e8c]
+                        1    ??? (Network + 20826896) [0x19f34fb10]
+                          1    ??? (libxpc.dylib + 103748) [0x1b4463544]
+                            1    ??? (libxpc.dylib + 109940) [0x1b4464d74]
+                              1    ??? (libxpc.dylib + 110252) [0x1b4464eac]
+      5    ??? (Foundation + 583956) [0x19ccd6914]
+        5    ??? (YWP + 13137340) [0x100e175bc]
+          5    ??? (Foundation + 62204) [0x19cc572fc]
+            5    ??? (Foundation + 44272) [0x19cc52cf0]
+              5    ??? (CoreFoundation + 189772) [0x19f9e554c]
+                5    ??? (CoreFoundation + 194276) [0x19f9e66e4]
+                  5    ??? (CoreFoundation + 411516) [0x19fa1b77c]
+                    5    ??? (CoreFoundation + 411732) [0x19fa1b854]
+                      5    ??? (CoreFoundation + 139736) [0x19f9d91d8]
+                        5    ??? (QuartzCore + 473080) [0x1a04167f8]
+                          5    ??? (QuartzCore + 634988) [0x1a043e06c]
+                            5    ??? (QuartzCore + 799108) [0x1a0466184]
+                              4    ??? (YWP + 13136652) [0x100e1730c]
+                                4    ??? (YWP + 18780164) [0x101379004]
+                                  4    ??? (YWP + 18780452) [0x101379124]
+                                    4    ??? (YWP + 21751876) [0x10164e844]
+                                      4    ??? (YWP + 10885768) [0x100bf1a88]
+                                        4    ??? (YWP + 10886296) [0x100bf1c98]
+                                          2    ??? (YWP + 10881016) [0x100bf07f8]
+                                            2    ??? (libsystem_c.dylib + 39780) [0x1ab53db64]
+                                              1    ??? (libsystem_c.dylib + 18308) [0x1ab538784]
+                                                1    ??? (libsystem_c.dylib + 44192) [0x1ab53eca0]
+                                                  1    ??? (libsystem_kernel.dylib + 29600) [0x24f0133a0]
+                                                    1    <Kernel mode, Effective Thread QoS Utility, Requested Thread QoS Utility>
+                                              1    ??? (libsystem_c.dylib + 17920) [0x1ab538600]
+                                                1    ??? (libsystem_c.dylib + 52668) [0x1ab540dbc]
+                                                  1    ??? (libsystem_c.dylib + 45568) [0x1ab53f200]
+                                                    1    ??? (libsystem_kernel.dylib + 5084) [0x24f00d3dc]
+                                                      1    <Kernel mode, Effective Thread QoS Utility, Requested Thread QoS Utility>
+                                          1    ??? (libsystem_kernel.dylib + 25648) [0x24f012430]
+                                            1    <Kernel mode, Effective Thread QoS Utility, Requested Thread QoS Utility>
+                                          1    ??? (YWP + 10881048) [0x100bf0818]
+                                            1    ??? (libsystem_c.dylib + 44428) [0x1ab53ed8c]
+                                              1    ??? (libsystem_c.dylib + 43284) [0x1ab53e914]
+                                                1    ??? (libsystem_c.dylib + 44192) [0x1ab53eca0]
+                                                  1    ??? (libsystem_kernel.dylib + 29600) [0x24f0133a0]
+                                                    1    <Kernel mode, Effective Thread QoS Utility, Requested Thread QoS Utility>
+                              1    ??? (YWP + 13136600) [0x100e172d8]
+                                1    ??? (YWP + 5027388) [0x10065b63c]
+                                  1    ??? (YWP + 18326728) [0x10130a4c8]
+                                    1    ??? (YWP + 6465560) [0x1007ba818]
+                                      1    ??? (YWP + 6465560) [0x1007ba818]
+                                        1    ??? (YWP + 6465560) [0x1007ba818]
+                                          1    ??? (YWP + 6465512) [0x1007ba7e8]
+                                            1    ??? (YWP + 3067144) [0x10047cd08]
+                                              1    ??? (YWP + 18785896) [0x10137a668]
+                                                1    ??? (GLEngine + 358320) [0x25cc7e7b0]
+                                                  1    ??? (GLEngine + 415268) [0x25cc8c624]
+                                                    1    ??? (AppleMetalGLRenderer + 88848) [0x2c3d01b10]
+                                                      1    ??? (AppleMetalGLRenderer + 98756) [0x2c3d041c4]
+                                                        1    <Effective Thread QoS Utility, Requested Thread QoS Utility>
+  2    ??? (libsystem_pthread.dylib + 2240) [0x1ff3628c0]
+    2    ??? (libsystem_pthread.dylib + 5040) [0x1ff3633b0]
+      2    ??? (libdispatch.dylib + 83628) [0x1da4f16ac]
+        2    ??? (libdispatch.dylib + 85420) [0x1da4f1dac]
+          2    ??? (libdispatch.dylib + 48712) [0x1da4e8e48]
+            2    ??? (libdispatch.dylib + 43748) [0x1da4e7ae4]
+              2    ??? (libdispatch.dylib + 40880) [0x1da4e6fb0]
+                2    ??? (libdispatch.dylib + 111076) [0x1da4f81e4]
+                  2    ??? (libdispatch.dylib + 6568) [0x1da4de9a8]
+                    1    ??? (CFNetwork + 517748) [0x1b4ee2674]
+                      1    ??? (libsystem_malloc.dylib + 4556) [0x1ab1441cc]
+                    1    ??? (CFNetwork + 38612) [0x1b4e6d6d4]
+                      1    ??? (CFNetwork + 214052) [0x1b4e98424]
+                        1    ??? (CFNetwork + 214228) [0x1b4e984d4]
+                          1    ??? (CFNetwork + 228056) [0x1b4e9bad8]
+                            1    ??? (CFNetwork + 233636) [0x1b4e9d0a4]
+                              1    ??? (CoreFoundation + 75068) [0x19f9c953c]
+                                1    <p-core>
+
+  Binary Images:
+           0x100190000 -                ???  com.Level5.YWP.QBM7M9XQ94 4.177.0 (4.177.0.0) <FC1344C9-6526-399F-82AF-E6D204909514>  /private/var/containers/Bundle/Application/0D92E4BA-DF53-43B1-BDF1-284D487C69C1/App.app/YWP
+           0x19c568000 -        0x19c5b947f  libobjc.A.dylib                               <794FD256-8A8D-3C8D-91AA-AAC27EF3512C>  /usr/lib/libobjc.A.dylib
+           0x19cc48000 -        0x19dad1cbf  Foundation                                    <73841AA3-BFDD-322D-8DC2-E5185A14DEE1>  /System/Library/Frameworks/Foundation.framework/Foundation
+           0x19df73000 -        0x19f74837f  Network                                       <22BBA9E0-76BB-37B6-AE8E-E6CEE0BF9872>  /System/Library/Frameworks/Network.framework/Network
+           0x19f9b7000 -        0x19ff53a3f  CoreFoundation                                <101EB2F1-1915-34A0-8BC9-631D03753B84>  /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation
+           0x1a03a3000 -        0x1a0793ebf  QuartzCore                                    <8F1E0B3F-ADD6-3710-A790-009333597AB4>  /System/Library/Frameworks/QuartzCore.framework/QuartzCore
+           0x1ab143000 -        0x1ab18bd0f  libsystem_malloc.dylib                        <8DD65565-6066-300E-AD0A-73118179EDB5>  /usr/lib/system/libsystem_malloc.dylib
+           0x1ab534000 -        0x1ab5b35ff  libsystem_c.dylib                             <FF429821-80DE-3A68-99CB-0B2E707E8D48>  /usr/lib/system/libsystem_c.dylib
+           0x1b444a000 -        0x1b449b65f  libxpc.dylib                                  <72214F26-EA8C-3F8A-BDF7-2F518FE9F87E>  /usr/lib/system/libxpc.dylib
+           0x1b4e64000 -        0x1b521477f  CFNetwork                                     <C91C6BEE-A5FE-38C5-BF00-C5030B860279>  /System/Library/Frameworks/CFNetwork.framework/CFNetwork
+           0x1da4dd000 -        0x1da5235ff  libdispatch.dylib                             <49C0CD3E-A696-3B11-BA92-5755F0C3C6E3>  /usr/lib/system/libdispatch.dylib
+           0x1ff362000 -        0x1ff36e4ef  libsystem_pthread.dylib                       <34B44744-BC64-386E-AB90-EEE86B23AC46>  /usr/lib/system/libsystem_pthread.dylib
+           0x24f00c000 -        0x24f047b1f  libsystem_kernel.dylib                        <18665B3F-6D51-33AB-B9E9-63062200EC42>  /usr/lib/system/libsystem_kernel.dylib
+           0x25cc27000 -        0x25cceafef  GLEngine                                      <68FB823B-64DA-3F68-B6CF-270D699FBCC3>  /System/Library/Frameworks/OpenGLES.framework/GLEngine.bundle/GLEngine
+           0x2c08fd000 -        0x2c0905433  libsystem_platform.dylib                      <3EDB2C1D-BF74-39F3-A9F6-B8C78BD66DD5>  /usr/lib/system/libsystem_platform.dylib
+           0x2c3cec000 -        0x2c3d0bcdf  AppleMetalGLRenderer                          <41C47E0B-9204-3DEC-9802-996B8F0E764F>  /System/Library/Extensions/AppleMetalGLRenderer.bundle/AppleMetalGLRenderer
